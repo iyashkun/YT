@@ -52,6 +52,13 @@
       user-select: none;
       pointer-events: none;
     }
+    .wpf--audio-wave::after {
+      display: inline-block;
+      width: 26px;
+      height: 26px;
+      vertical-align: -0.125em;
+      content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26'%3E%3Cpath fill='%23fff' d='M18.813 2.031a.95.95 0 0 0-.75.969v19a.95.95 0 1 0 1.875 0V3a.95.95 0 0 0-1.032-.969a1 1 0 0 0-.093 0m-12 1a.95.95 0 0 0-.75.969v17a.95.95 0 1 0 1.875 0V4a.95.95 0 0 0-1.032-.969a1 1 0 0 0-.093 0m9 3a.95.95 0 0 0-.75.969v11a.95.95 0 1 0 1.874 0V7a.95.95 0 0 0-1.03-.969a1 1 0 0 0-.095 0zm-12 1a.95.95 0 0 0-.75.969v9a.95.95 0 1 0 1.874 0V8a.95.95 0 0 0-1.03-.969a1 1 0 0 0-.095 0zm6 1a.95.95 0 0 0-.75.969v7a.95.95 0 1 0 1.874 0V9a.95.95 0 0 0-1.03-.969a1 1 0 0 0-.095 0zm12 0a.95.95 0 0 0-.75.969v7a.95.95 0 1 0 1.875 0V9a.95.95 0 0 0-1.032-.969a1 1 0 0 0-.093 0m-21 2a.95.95 0 0 0-.75.969v3a.95.95 0 1 0 1.875 0v-3a.95.95 0 0 0-1.032-.969a1 1 0 0 0-.094 0zm12 0a.95.95 0 0 0-.75.969v3a.95.95 0 1 0 1.874 0v-3a.95.95 0 0 0-1.03-.969a1 1 0 0 0-.095 0zm12 0a.95.95 0 0 0-.75.969v3a.95.95 0 1 0 1.875 0v-3a.95.95 0 0 0-1.032-.969a1 1 0 0 0-.093 0'/%3E%3C/svg%3E");
+    }
     .song-info {
       width: 100%;
       margin-top: 1.25rem;
@@ -169,7 +176,7 @@
         <p id="song-artists" class="song-artists"></p>
       </div>
       <div class="wave-icon" aria-hidden="true">
-        <i class="fas fa-wave-square"></i>
+        <i class="fas fa-wave"></i>
       </div>
     </section>
     <div class="flex w-full mt-3 items-center select-none">
