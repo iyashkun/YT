@@ -1,0 +1,238 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1" name="viewport" />
+  <title>Music Player</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+    rel="stylesheet"
+  />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%);
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 1.5rem;
+      backdrop-filter: none;
+    }
+    .blurred-bg {
+      position: fixed;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      filter: blur(40px);
+      z-index: -1;
+      opacity: 0.3;
+    }
+    .player-container {
+      width: 320px;
+      background: rgba(30, 30, 30, 0.4);
+      border-radius: 48px;
+      backdrop-filter: blur(40px);
+      -webkit-backdrop-filter: blur(40px);
+      box-shadow: 0 0 30px rgb(0 0 0 / 0.7);
+      padding: 1.5rem 1.5rem 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: white;
+    }
+    .album-art {
+      width: 320px;
+      height: 180px; /* YouTube thumbnail aspect ratio 16:9 */
+      border-radius: 24px;
+      object-fit: cover;
+      user-select: none;
+      pointer-events: none;
+    }
+    .song-info {
+      width: 100%;
+      margin-top: 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .song-text {
+      max-width: 220px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    .song-title {
+      font-weight: 600;
+      font-size: 1rem;
+      line-height: 1.25rem;
+      user-select: none;
+    }
+    .song-artists {
+      font-weight: 400;
+      font-size: 0.875rem;
+      line-height: 1.25rem;
+      color: #b3b3b3;
+      user-select: text;
+    }
+    .wave-icon {
+      color: #9b4dff;
+      font-size: 1.5rem;
+      user-select: none;
+      flex-shrink: 0;
+      margin-left: 0.5rem;
+    }
+    .progress-bar {
+      flex: 1;
+      margin: 0 0.75rem;
+      height: 0.5rem;
+      background-color: #4b5563;
+      border-radius: 9999px;
+      position: relative;
+      overflow: hidden;
+    }
+    .progress-bar > div {
+      height: 0.5rem;
+      background-color: #9ca3af;
+      border-radius: 9999px;
+      width: 45%;
+    }
+    .controls {
+      margin-top: 1.25rem;
+      display: flex;
+      justify-content: center;
+      gap: 3rem;
+      color: white;
+      user-select: none;
+    }
+    .controls button {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      outline: none;
+      transition: color 0.2s ease;
+    }
+    .controls button:focus,
+    .controls button:hover {
+      color: #9b4dff;
+    }
+    .controls i {
+      font-size: 2rem;
+    }
+    .output-button {
+      margin-top: 1.5rem;
+      background: rgba(55, 65, 81, 0.5);
+      border-radius: 9999px;
+      padding: 0.5rem 1.5rem;
+      color: white;
+      font-size: 0.875rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      user-select: none;
+      cursor: default;
+      border: none;
+    }
+    .output-button i {
+      font-size: 1.25rem;
+    }
+    @media (min-width: 640px) {
+      .player-container {
+        width: 360px;
+      }
+      .album-art {
+        width: 360px;
+        height: 202.5px; /* 16:9 ratio */
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="blurred-bg" class="blurred-bg" aria-hidden="true"></div>
+  <main class="player-container" role="region" aria-label="Music player">
+    <img
+      id="album-art"
+      src=""
+      alt="Album cover"
+      class="album-art"
+      draggable="false"
+      width="320"
+      height="180"
+    />
+    <section class="song-info">
+      <div class="song-text">
+        <p id="song-title" class="song-title"></p>
+        <p id="song-artists" class="song-artists"></p>
+      </div>
+      <div class="wave-icon" aria-hidden="true">
+        <i class="fas fa-wave-square"></i>
+      </div>
+    </section>
+    <div class="flex w-full mt-3 items-center select-none">
+      <span class="text-gray-400 text-xs font-medium select-none">1:30</span>
+      <div class="progress-bar mx-3">
+        <div></div>
+      </div>
+      <span class="text-gray-400 text-xs font-medium select-none">-1:46</span>
+    </div>
+    <section class="controls" role="group" aria-label="Playback controls">
+      <button aria-label="Previous track" type="button"><i class="fas fa-backward"></i></button>
+      <button aria-label="Pause" type="button"><i class="fas fa-pause"></i></button>
+      <button aria-label="Next" type="button"><i class="fas fa-forward"></i></button>
+    </section>
+    <button class="output-button" aria-label="Output device iPhone" type="button" tabindex="-1">
+      <i class="fa-brands fa-apple" aria-hidden="true"></i>
+      <span>iPhone</span>
+    </button>
+  </main>
+
+  <script>
+    // Parse URL parameters
+    function getQueryParams() {
+      const params = {};
+      const queryString = window.location.search.substring(1);
+      const pairs = queryString.split("&");
+      for (const pair of pairs) {
+        if (!pair) continue;
+        const [key, value] = pair.split("=");
+        if (key && value) {
+          params[decodeURIComponent(key)] = decodeURIComponent(value.replace(/\+/g, " "));
+        }
+      }
+      return params;
+    }
+
+    function loadPlayer({ image, title, details }) {
+      const albumArt = document.getElementById('album-art');
+      const songTitle = document.getElementById('song-title');
+      const songArtists = document.getElementById('song-artists');
+      const blurredBg = document.getElementById('blurred-bg');
+
+      if (image) {
+        albumArt.src = image;
+        albumArt.alt = `Album cover for ${title || 'Unknown Title'}`;
+        blurredBg.style.backgroundImage = `url('${image}')`;
+      } else {
+        albumArt.src = '';
+        albumArt.alt = 'Album cover';
+        blurredBg.style.backgroundImage = '';
+      }
+      songTitle.textContent = title || '';
+      songArtists.textContent = details || '';
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const params = getQueryParams();
+      loadPlayer({
+        image: params.image,
+        title: params.title,
+        details: params.details
+      });
+    });
+  </script>
+</body>
+</html>
