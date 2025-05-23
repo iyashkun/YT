@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Telegram User Info</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #eee;
+      text-align: center;
+      padding: 20px;
+    }
+    .user-card {
+      background: #222;
+      border-radius: 10px;
+      padding: 20px;
+      display: inline-block;
+      margin-top: 50px;
+    }
+    img {
+      border-radius: 50%;
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+    }
+  </style>
+</head>
+<body>
+  <h1>User Info</h1>
+  <div class="user-card" id="userCard">
+    <p>Loading...</p>
+  </div>
+
+  <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      const user = Telegram.WebApp.initDataUnsafe.user;
+
+      if (user) {
+        document.getElementById("userCard").innerHTML = `
+          <img src="${user.photo_url}" alt="User Photo" />
+          <h2>${user.first_name} ${user.last_name || ''}</h2>
+          <p><strong>Username:</strong> @${user.username}</p>
+          <p><strong>User ID:</strong> ${user.id}</p>
+        `;
+      } else {
+        document.getElementById("userCard").innerHTML = `
+          <p>Unable to fetch user info.</p>
+        `;
+      }
+    });
+  </script>
+</body>
+</html>
