@@ -1,66 +1,35 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>YouTube Search Without API Key</title>
+  <title>Safe YouTube Player</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-black text-white p-6">
-  <div class="max-w-3xl mx-auto">
-    <h1 class="text-2xl font-bold mb-4">YouTube Search (No API Key)</h1>
-    <input id="searchInput" type="text" placeholder="Search YouTube..." class="w-full p-2 text-black rounded mb-4" />
-    <button onclick="searchYouTube()" class="bg-blue-600 px-4 py-2 rounded">Search</button>
+<body class="bg-black text-white flex flex-col items-center justify-center min-h-screen">
+  <h1 class="text-xl mb-4">YouTube Video Player</h1>
+  <input type="text" id="yturl" placeholder="Enter YouTube URL" class="p-2 text-black w-1/2" />
+  <button onclick="loadVideo()" class="bg-blue-600 px-4 py-2 mt-2">Play Video</button>
 
-    <div id="results" class="mt-6 space-y-4"></div>
-
-    <div class="mt-10">
-      <h2 class="text-xl mb-2">Video Player</h2>
-      <div id="player" class="aspect-video w-full"></div>
-    </div>
+  <div id="player" class="w-full md:w-2/3 aspect-video mt-6">
+    <!-- YouTube iframe will be added here -->
   </div>
 
   <script>
-    async function searchYouTube() {
-      const query = document.getElementById("searchInput").value;
-      const searchUrl = `https://www.google.com/search?q=site:youtube.com+${encodeURIComponent(query)}`;
-      
-      const proxy = "https://cors-anywhere.herokuapp.com/"; // CORS bypass
-      const res = await fetch(proxy + searchUrl, {
-        headers: {
-          "X-Requested-With": "XMLHttpRequest"
-        }
-      });
-      const html = await res.text();
-
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
-      const links = [...doc.querySelectorAll('a')];
-
-      const youtubeLinks = links
-        .map(a => a.href)
-        .filter(href => href.includes("youtube.com/watch") || href.includes("youtu.be"))
-        .slice(0, 5);
-
-      const resultsDiv = document.getElementById("results");
-      resultsDiv.innerHTML = "";
-
-      youtubeLinks.forEach(link => {
-        const videoId = extractVideoId(link);
-        const div = document.createElement("div");
-        div.className = "bg-gray-800 p-2 rounded cursor-pointer hover:bg-gray-700";
-        div.innerText = link;
-        div.onclick = () => {
-          document.getElementById('player').innerHTML = `
-            <iframe class="w-full h-full" src="https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1" frameborder="0" allowfullscreen></iframe>
-          `;
-        };
-        resultsDiv.appendChild(div);
-      });
-    }
-
     function extractVideoId(url) {
-      const regex = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+      const regex = /(?:youtube\.com.*(?:\/|v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
       const match = url.match(regex);
       return match ? match[1] : null;
+    }
+
+    function loadVideo() {
+      const url = document.getElementById('yturl').value;
+      const videoId = extractVideoId(url);
+      if (!videoId) {
+        alert("Invalid YouTube URL");
+        return;
+      }
+
+      const iframe = `<iframe class="w-full h-full" src="https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1&autoplay=1" frameborder="0" allowfullscreen></iframe>`;
+      document.getElementById('player').innerHTML = iframe;
     }
   </script>
 </body>
