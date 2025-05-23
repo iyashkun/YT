@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1" name="viewport" />
   <title>Safe YouTube Player</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -28,7 +30,8 @@
         return;
       }
 
-      const iframe = `<iframe class="w-full h-full" src="https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1&autoplay=1" frameborder="0" allowfullscreen></iframe>`;
+      // const iframe = `<iframe class="w-full h-full" src="https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1&autoplay=1" frameborder="0" allowfullscreen></iframe>`;
+      const iframe = `<iframe class="w-full h-full" src="https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1&autoplay=1&vq=hd1080" frameborder="0" allowfullscreen></iframe>`;
       document.getElementById('player').innerHTML = iframe;
     }
   </script>
