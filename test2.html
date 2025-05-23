@@ -4,11 +4,18 @@
   <meta charset="utf-8" />
   <meta content="width=device-width, initial-scale=1" name="viewport" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>YouTube</title>
+  <title>YouTube Player</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+    }
+  </style>
 </head>
-<body class="bg-black text-white flex flex-col items-center justify-center min-h-screen">
-  <div id="player" class="w-full md:w-2/3 aspect-video mt-6"></div>
+<body class="bg-black text-white flex items-center justify-center h-screen">
+  <div id="player" class="w-full h-full"></div>
 
   <script>
     function extractVideoId(url) {
@@ -17,14 +24,9 @@
       return match ? match[1] : null;
     }
 
-    function loadVideo(videoUrl = null) {
-      const url = videoUrl || document.getElementById('yturl').value;
-      const videoId = extractVideoId(url);
-      if (!videoId) {
-        alert("Invalid YouTube URL");
-        return;
-      }
-
+    function loadVideo(videoUrl) {
+      const videoId = extractVideoId(videoUrl);
+      if (!videoId) return;
       const iframe = `<iframe class="w-full h-full" src="https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1&autoplay=1&vq=hd1080" frameborder="0" allowfullscreen></iframe>`;
       document.getElementById('player').innerHTML = iframe;
     }
@@ -32,10 +34,7 @@
     window.onload = () => {
       const params = new URLSearchParams(window.location.search);
       const videoParam = params.get('video');
-      if (videoParam) {
-        document.getElementById('yturl').value = videoParam;
-        loadVideo(videoParam);
-      }
+      if (videoParam) loadVideo(videoParam);
     };
   </script>
 </body>
