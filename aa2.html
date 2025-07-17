@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>YouTube Video Crop and Play</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: black;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+    #player-container {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+    #player {
+      width: 100%;
+      height: 100%;
+      /* Clip to remove YouTube controls and branding */
+      clip-path: inset(10% 0 20% 0); /* Adjust: top 10%, bottom 20% to crop controls */
+      transform: scale(1.2); /* Zoom in to fill clipped area */
+      transform-origin: center;
+    }
+    #croppedCanvas {
+      width: 100%;
+      height: 100%;
+      display: none; /* Hidden by default, enable if needed */
+    }
+  </style>
+</head>
+<body>
+  <div id="player-container">
+    <div id="player"></div>
+    <canvas id="croppedCanvas"></canvas>
+  </div>
+
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script>
+    // Extract YouTube video ID from URL
+    function extractVideoId(url) {
+      const regex = /(?:youtube\.com.*(?:\/|v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+      const match = url.match(regex);
+      return match ? match[1] : null;
+    }
+
+    let player;
+    window.onYouTubeIframeAPIReady = () => {
+      const params = new URLSearchParams(window.location.search);
+      const videoParam = params.get('video');
+      const videoId = videoParam ? extractVideoId(videoParam) : 'dQw4w9WgXcQ'; // Default video ID
+
+      if (!videoId) {
+        console.error('Invalid video URL');
+        return;
+      }
+
+      // Initialize YouTube player
+      player = new YT.Player('player', {
+        height: '100%',
+        width: '100%',
+        videoId: videoId,
+        playerVars: {
+          autoplay: 1,
+          controls: 0, // Hide controls
+          modestbranding: 1, // Minimize branding
+          rel: 0,
+          vq: 'hd1080',
+          playsinline: 1
+        },
+        events: {
+          onReady: (event) => {
+            event.target.playVideo();
+            // Optional: Start canvas rendering if needed
+            // startCanvasCropping();
+          },
+          onError: (event) => {
+            console.error('YouTube Player Error:', event.data);
+          }
+        }
+      });
+    };
+
+    // Fallback Canvas Cropping (if CSS clipping isn't enough)
+    function startCanvasCropping() {
+      const iframe = document.querySelector('iframe');
+      const canvas = document.getElementById('croppedCanvas');
+      const ctx = canvas.getContext('2d');
+
+      // Set canvas size
+      canvas.width = 1280;
+      canvas.height = 720;
+      canvas.style.display = 'block'; // Show canvas
+
+      // Crop parameters
+      const cropX = 0;
+      const cropY = 50; // Skip top bar
+      const cropWidth = 1280;
+      const cropHeight = 620; // Skip bottom controls
+
+      function drawFrame() {
+        try {
+          ctx.drawImage(
+            iframe,
+            cropX, cropY, cropWidth, cropHeight,
+            0, 0, canvas.width, canvas.height
+          );
+        } catch (e) {
+          console.error('Canvas draw error (likely CORS):', e);
+        }
+        requestAnimationFrame(drawFrame);
+      }
+      drawFrame();
+    }
+
+    // Optional: Add custom controls
+    window.addEventListener('message', (event) => {
+      if (event.data && typeof event.data === 'string') {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.event === 'infoDelivery' && data.info && data.info.playerState) {
+            // Handle player state changes if needed
+          }
+        } catch (e) {}
+      }
+    });
+  </script>
+</body>
+</html>
