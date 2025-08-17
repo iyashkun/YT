@@ -1,0 +1,119 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Eligibility Checker - Next Level Modern</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+  />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #0D0D0D 0%, #121212 100%);
+    }
+    /* Custom subtle glass effect */
+    .glass-bg {
+      background: rgba(26, 26, 26, 0.75);
+      backdrop-filter: saturate(180%) blur(12px);
+      -webkit-backdrop-filter: saturate(180%) blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+    /* Smooth button shadow and scale on hover */
+    .btn-scale:hover {
+      transform: scale(1.05);
+      box-shadow: 0 8px 20px rgb(45 184 76 / 0.5);
+    }
+    /* Input focus ring with smooth transition */
+    input:focus {
+      transition: box-shadow 0.3s ease, border-color 0.3s ease;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-5">
+  <main class="glass-bg rounded-3xl p-6 max-w-sm w-full shadow-xl">
+    <h1 class="text-white text-base font-extrabold mb-1 select-none tracking-tight">Eligibility Checker</h1>
+    <p class="text-gray-400 mb-4 select-none text-xs leading-tight">Enter your wallet address to see if you qualify for the allowlist.</p>
+    <form id="eligibilityForm" class="space-y-4" autocomplete="off" spellcheck="false" novalidate>
+      <div class="flex space-x-2">
+        <input
+          id="walletInput"
+          type="text"
+          placeholder="0xYourWalletAddress"
+          class="bg-[#121212] text-gray-400 font-semibold rounded-lg px-3 py-2 flex-grow placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-xs tracking-wide"
+          aria-label="Wallet address input"
+          required
+          spellcheck="false"
+          autocapitalize="none"
+          autocomplete="off"
+        />
+        <button
+          type="submit"
+          id="checkBtn"
+          class="bg-gradient-to-br from-[#2DB84C] to-[#27a43f] text-black font-bold rounded-lg px-4 flex items-center space-x-1 btn-scale transition-transform duration-300 ease-in-out text-xs tracking-wide shadow-md"
+          aria-label="Check eligibility"
+        >
+          <i class="fas fa-search text-[10px]"></i>
+          <span>Check</span>
+        </button>
+      </div>
+      <p id="resultMessage" class="text-xs font-semibold select-none min-h-[1.25rem]"></p>
+      <p class="text-gray-400 text-[10px] select-none mt-1 tracking-tight">Final snapshot 20th Aug</p>
+    </form>
+  </main>
+
+  <script>
+    (function(){
+      const walletsUrl = '/wallets.txt'; // Ensure wallets.txt is accessible at this path
+      const walletSet = new Set();
+      const resultMessage = document.getElementById('resultMessage');
+      const form = document.getElementById('eligibilityForm');
+      const input = document.getElementById('walletInput');
+      const checkBtn = document.getElementById('checkBtn');
+
+      // Load wallets.txt and populate walletSet
+      async function loadWallets() {
+        try {
+          const res = await fetch(walletsUrl);
+          if (!res.ok) throw new Error('Failed to load wallets.txt');
+          const text = await res.text();
+          text.split(/\r?\n/).forEach(line => {
+            const w = line.trim().toLowerCase();
+            if (w) walletSet.add(w);
+          });
+        } catch (e) {
+          console.error(e);
+          resultMessage.textContent = 'Error loading wallet list.';
+          resultMessage.className = 'text-red-500 text-xs font-semibold select-none';
+          checkBtn.disabled = true;
+        }
+      }
+
+      function normalizeWallet(addr) {
+        return addr.trim().toLowerCase();
+      }
+
+      form.addEventListener('submit', e => {
+        e.preventDefault();
+        const val = input.value;
+        if (!val.trim()) {
+          resultMessage.textContent = '';
+          return;
+        }
+        const normalized = normalizeWallet(val);
+        if (walletSet.has(normalized)) {
+          resultMessage.textContent = `Wallet ${val} is eligible ✅.`;
+          resultMessage.className = 'text-green-500 text-xs font-semibold select-none';
+        } else {
+          resultMessage.textContent = `Wallet ${val} is not eligible ❌.`;
+          resultMessage.className = 'text-red-500 text-xs font-semibold select-none';
+        }
+      });
+
+      loadWallets();
+    })();
+  </script>
+</body>
+</html>
