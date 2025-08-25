@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="The most suitable wallet for Internet users, safe and efficient.">
     <meta name="keywords" content="Web3, Wallet, Cryptocurrency, Safe, Efficient">
-    <meta name="author" content="@Yash00x">
+    <meta name="author" content="@iYashKun">
     <title>Web3 Wallet: Testnet</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/ethers@6.6.2/dist/ethers.umd.min.js"></script>
@@ -45,15 +45,6 @@
         <img alt="Illustration of a shield with a check mark, a wallet, and coins" class="mx-auto mb-6" src="https://framerusercontent.com/images/4yWuZhYgrbEf24mM1QSmRoMsbiI.png?scale-down-to=512"/>
         <p class="text-gray-400 mb-6">The most suitable wallet for Internet users, safe and efficient</p>
         <button id="createWallet" class="bg-white text-black py-3 px-10 rounded-full w-full font-semibold hover:bg-gray-200 transition">Create Wallet</button>
-        <div class="mt-6">
-            <input id="receiver" type="text" placeholder="Receiver Address" class="w-full mb-2 p-3 rounded text-black bg-gray-800 text-white placeholder-gray-500 border-none focus:ring-2 focus:ring-cyan-500"/>
-            <input id="amount" type="text" placeholder="Amount (ETH)" class="w-full mb-2 p-3 rounded text-black bg-gray-800 text-white placeholder-gray-500 border-none focus:ring-2 focus:ring-cyan-500"/>
-            <button id="sendBtn" class="bg-cyan-600 text-white py-3 px-10 rounded-full w-full font-semibold hover:bg-cyan-700 transition">Send</button>
-        </div>
-        <div class="mt-6">
-            <button id="getBalance" class="bg-purple-600 text-white py-3 px-10 rounded-full w-full font-semibold hover:bg-purple-700 transition mb-2">Check Balance</button>
-            <p class="text-white"><strong>Balance:</strong> <span id="balance">0</span> ETH</p>
-        </div>
     </div>
     <div id="walletPage" class="hidden text-left p-6 w-full max-w-md fade-in">
         <div class="flex justify-between items-center mb-6">
@@ -102,24 +93,6 @@
             document.getElementById("walletMnemonic").textContent = wallet.mnemonic.phrase;
             mainPage.classList.add("hidden");
             walletPage.classList.remove("hidden");
-        };
-
-        document.getElementById("getBalance").onclick = async () => {
-            if (!wallet) return alert("Create a wallet first");
-            const balance = await provider.getBalance(wallet.address);
-            document.getElementById("balance").textContent = ethers.formatEther(balance);
-        };
-
-        document.getElementById("sendBtn").onclick = async () => {
-            const to = document.getElementById("receiver").value;
-            const amount = document.getElementById("amount").value;
-            if (!wallet || !to || !amount) return alert("Missing fields");
-            try {
-                const tx = await wallet.sendTransaction({ to, value: ethers.parseEther(amount) });
-                alert("Transaction Sent: " + tx.hash);
-            } catch (error) {
-                alert("Transaction Failed: " + error.message);
-            }
         };
 
         document.getElementById("settingsBtn").onclick = () => {
