@@ -1,0 +1,1274 @@
+<html class="scroll-smooth" lang="en">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <title>
+   Mintable Pass - NFT Minting dApp on Base
+  </title>
+  <script src="https://cdn.tailwindcss.com">
+  </script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&amp;display=swap" rel="stylesheet"/>
+  <style>
+   body {
+      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+        Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      background: #0f172a;
+      color: #e0e7ff;
+      font-size: 14px;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background-color: rgba(99, 102, 241, 0.6);
+      border-radius: 10px;
+      border: 1.5px solid transparent;
+      background-clip: content-box;
+    }
+    a, button {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    /* Transparent glassy button style */
+    .btn-glass {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: saturate(180%) blur(10px);
+      border: 1.5px solid rgba(255, 255, 255, 0.15);
+      color: #a5b4fc;
+      font-weight: 600;
+      border-radius: 0.5rem;
+      padding: 0.5rem 1.5rem;
+      cursor: pointer;
+      box-shadow: 0 0 8px rgb(99 102 241 / 0.3);
+    }
+    .btn-glass:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: #6366f1;
+      color: #6366f1;
+      box-shadow: 0 0 12px rgb(99 102 241 / 0.6);
+    }
+    .btn-glass:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      box-shadow: none;
+      color: #818cf8;
+      border-color: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.02);
+    }
+    /* Gradient text */
+    .text-gradient {
+      background: linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    /* Glassy card */
+    .card-glass {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: saturate(180%) blur(12px);
+      border: 1.5px solid rgba(255, 255, 255, 0.15);
+      border-radius: 1rem;
+      box-shadow: 0 8px 32px 0 rgba(99, 102, 241, 0.25);
+    }
+    /* Progress bar container */
+    .progress-container {
+      background: rgba(255, 255, 255, 0.07);
+      border-radius: 9999px;
+      box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.2);
+      height: 18px;
+      overflow: hidden;
+    }
+    /* Progress bar fill */
+    .progress-fill {
+      height: 18px;
+      border-radius: 9999px;
+      background: linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899);
+      box-shadow: 0 0 8px rgb(99 102 241 / 0.6);
+      transition: width 0.7s ease;
+    }
+    /* Scrollbar for tx history */
+    #txHistory::-webkit-scrollbar {
+      width: 6px;
+    }
+    #txHistory::-webkit-scrollbar-thumb {
+      background-color: rgba(147, 197, 253, 0.5);
+      border-radius: 10px;
+    }
+  </style>
+ </head>
+ <body class="min-h-screen flex flex-col">
+  <header class="bg-gradient-to-r from-indigo-900/80 via-indigo-800/70 to-indigo-700/80 shadow-lg sticky top-0 z-50 backdrop-blur-md">
+   <nav class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+    <a class="flex items-center space-x-3" href="#home" tabindex="0">
+     <img alt="Mintable Pass logo, stylized MP letters in gradient purple" class="w-10 h-10 rounded-md shadow-md" height="48" loading="lazy" src="https://storage.googleapis.com/a1aa/image/fd43b55a-3bf0-45ec-b15d-157913888c18.jpg" width="48"/>
+     <span class="text-lg font-semibold text-indigo-300 tracking-wide select-none">
+      Mintable Pass
+     </span>
+    </a>
+    <ul class="hidden md:flex space-x-6 text-indigo-300 font-medium tracking-wide">
+     <li>
+      <a class="hover:text-indigo-400 focus:text-indigo-400 focus:outline-none" href="#home" tabindex="0">
+       Home
+      </a>
+     </li>
+     <li>
+      <a class="hover:text-indigo-400 focus:text-indigo-400 focus:outline-none" href="#about" tabindex="0">
+       About
+      </a>
+     </li>
+     <li>
+      <a class="hover:text-indigo-400 focus:text-indigo-400 focus:outline-none" href="#dashboard" tabindex="0">
+       Mint Dashboard
+      </a>
+     </li>
+    </ul>
+    <button aria-label="Connect Wallet" class="btn-glass flex items-center space-x-2" id="walletConnectBtn" tabindex="0" type="button">
+     <i class="fas fa-wallet text-indigo-400 text-base">
+     </i>
+     <span class="text-indigo-300 text-sm font-semibold">
+      Connect Wallet
+     </span>
+    </button>
+    <button aria-label="Toggle menu" class="md:hidden text-indigo-300 hover:text-indigo-400 focus:outline-none focus:text-indigo-400" id="mobileMenuBtn" tabindex="0" type="button">
+     <i class="fas fa-bars fa-lg">
+     </i>
+    </button>
+   </nav>
+   <div class="hidden md:hidden bg-indigo-900/70 px-6 pb-4 space-y-3 backdrop-blur-md" id="mobileMenu">
+    <a class="block text-indigo-300 font-medium hover:text-indigo-400 focus:text-indigo-400 focus:outline-none" href="#home" tabindex="0">
+     Home
+    </a>
+    <a class="block text-indigo-300 font-medium hover:text-indigo-400 focus:text-indigo-400 focus:outline-none" href="#about" tabindex="0">
+     About
+    </a>
+    <a class="block text-indigo-300 font-medium hover:text-indigo-400 focus:text-indigo-400 focus:outline-none" href="#dashboard" tabindex="0">
+     Mint Dashboard
+    </a>
+   </div>
+  </header>
+  <main class="flex-grow max-w-6xl mx-auto px-5 py-8 space-y-16">
+   <!-- Home Section -->
+   <section class="space-y-8" id="home">
+    <div class="flex flex-col md:flex-row items-center md:items-start gap-8">
+     <div class="flex-1 max-w-md rounded-xl overflow-hidden shadow-lg card-glass">
+      <img alt="Mintable Pass NFT banner showing futuristic digital pass with purple and blue gradient highlights on dark background" class="w-full object-cover" height="320" loading="lazy" src="https://storage.googleapis.com/a1aa/image/8bde0741-06b1-467e-46eb-b0d164024bcc.jpg" width="600"/>
+     </div>
+     <div class="flex-1 space-y-6">
+      <h1 class="text-3xl md:text-4xl font-extrabold text-indigo-300 leading-tight tracking-tight">
+       Mint Your
+       <span class="text-gradient">
+        Mintable Pass
+       </span>
+       NFT
+      </h1>
+      <p class="text-indigo-300 text-base leading-relaxed tracking-wide">
+       Join the exclusive Mintable Pass community on Base chain. Limited to 50 NFTs with phased minting and royalty support.
+      </p>
+      <div class="space-y-5">
+       <div>
+        <h2 class="text-indigo-300 font-semibold text-lg mb-1 tracking-wide">
+         Mint Progress
+        </h2>
+        <div class="progress-container">
+         <div aria-valuemax="50" aria-valuemin="0" aria-valuenow="0" class="progress-fill" id="progressBar" role="progressbar" style="width: 0%">
+         </div>
+        </div>
+        <p class="mt-1 text-indigo-400 font-mono text-xs tracking-wide" id="progressText">
+         0 / 50 Minted (0%)
+        </p>
+       </div>
+       <div class="card-glass p-5 shadow-md space-y-4">
+        <h2 class="text-indigo-300 font-semibold text-lg tracking-wide">
+         Current Phase
+        </h2>
+        <div class="text-indigo-300 text-sm font-medium tracking-wide" id="phaseInfo">
+         Loading phase info...
+        </div>
+        <div class="text-indigo-400 font-mono text-xs mt-1 tracking-wide" id="phaseCountdown">
+        </div>
+        <button class="btn-glass w-full mt-5 text-base font-semibold tracking-wide disabled:opacity-50 disabled:cursor-not-allowed" disabled="" id="mintButton" type="button">
+         Loading...
+        </button>
+       </div>
+       <div class="grid grid-cols-2 gap-6 text-indigo-400 font-mono text-xs tracking-wide">
+        <div>
+         <span class="block font-semibold text-sm" id="totalMinted">
+          0
+         </span>
+         Total Minted
+        </div>
+        <div>
+         <span class="block font-semibold text-sm" id="remainingSupply">
+          50
+         </span>
+         Remaining Supply
+        </div>
+       </div>
+      </div>
+     </div>
+    </div>
+   </section>
+   <!-- About Section -->
+   <section class="max-w-3xl mx-auto space-y-6" id="about">
+    <h2 class="text-2xl font-extrabold text-indigo-300 text-center tracking-wide">
+     About Mintable Pass
+    </h2>
+    <p class="text-indigo-300 text-sm leading-relaxed tracking-wide">
+     The Mintable Pass is a limited edition NFT collection on the Base mainnet, designed to grant exclusive access and benefits to holders. With only 50 NFTs available, the pass unlocks early access to future drops, community governance rights, and special event invitations.
+    </p>
+    <p class="text-indigo-300 text-sm leading-relaxed tracking-wide">
+     Our phased minting approach ensures fairness and rewards our core community members first, followed by guaranteed first-come-first-serve minting, and finally opening to the public. The contract supports 5% royalties via ERC2981, ensuring ongoing support for the project.
+    </p>
+    <p class="text-indigo-300 text-sm leading-relaxed tracking-wide">
+     Join us on this journey to build a vibrant NFT ecosystem on Base, with professional tooling, transparent minting phases, and a sleek user experience inspired by OpenSea.
+    </p>
+   </section>
+   <!-- Mint Dashboard Section -->
+   <section class="max-w-4xl mx-auto space-y-8" id="dashboard">
+    <h2 class="text-2xl font-extrabold text-indigo-300 text-center tracking-wide">
+     Mint Dashboard
+    </h2>
+    <div class="card-glass p-5 shadow-md space-y-5">
+     <div>
+      <h3 class="text-indigo-300 font-semibold text-lg mb-1 tracking-wide">
+       Overall Mint Progress
+      </h3>
+      <div class="progress-container">
+       <div aria-valuemax="50" aria-valuemin="0" aria-valuenow="0" class="progress-fill" id="dashboardProgressBar" role="progressbar" style="width: 0%">
+       </div>
+      </div>
+      <p class="mt-1 text-indigo-400 font-mono text-xs tracking-wide" id="dashboardProgressText">
+       0 / 50 Minted (0%)
+      </p>
+     </div>
+     <div>
+      <h3 class="text-indigo-300 font-semibold text-lg mb-3 tracking-wide">
+       Recent Transactions
+      </h3>
+      <div aria-atomic="true" aria-live="polite" aria-relevant="additions" class="max-h-56 overflow-y-auto bg-indigo-900 rounded-md p-3 space-y-2 font-mono text-indigo-300 text-xs tracking-wide" id="txHistory" role="log" tabindex="0">
+       <p class="text-indigo-400 italic select-none">
+        No transactions yet.
+       </p>
+      </div>
+     </div>
+    </div>
+   </section>
+  </main>
+  <footer class="bg-indigo-900 border-t border-indigo-700 py-6 mt-16">
+   <div class="max-w-6xl mx-auto px-5 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+    <div class="text-indigo-400 font-semibold select-none text-xs tracking-wide">
+     © 2025 Mintable Pass
+    </div>
+    <div class="flex space-x-6 text-indigo-300 text-lg">
+     <a aria-label="Twitter" class="hover:text-indigo-400 focus:text-indigo-400 focus:outline-none" href="https://twitter.com" rel="noopener" tabindex="0" target="_blank">
+      <i class="fab fa-twitter">
+      </i>
+     </a>
+     <a aria-label="Discord" class="hover:text-indigo-400 focus:text-indigo-400 focus:outline-none" href="https://discord.com" rel="noopener" tabindex="0" target="_blank">
+      <i class="fab fa-discord">
+      </i>
+     </a>
+     <a aria-label="GitHub" class="hover:text-indigo-400 focus:text-indigo-400 focus:outline-none" href="https://github.com" rel="noopener" tabindex="0" target="_blank">
+      <i class="fab fa-github">
+      </i>
+     </a>
+     <a aria-label="OpenSea" class="hover:text-indigo-400 focus:text-indigo-400 focus:outline-none" href="https://opensea.io" rel="noopener" tabindex="0" target="_blank">
+      <i class="fab fa-opensea">
+      </i>
+     </a>
+    </div>
+   </div>
+  </footer>
+  <!-- Success Modal -->
+  <div aria-labelledby="successModalTitle" aria-modal="true" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center p-4 hidden z-50" id="successModal" role="dialog">
+   <div class="bg-indigo-900 rounded-xl max-w-sm w-full p-6 space-y-6 shadow-lg card-glass">
+    <h3 class="text-indigo-300 text-xl font-bold text-center tracking-wide" id="successModalTitle">
+     Mint Successful!
+    </h3>
+    <p class="text-indigo-300 text-center text-sm tracking-wide" id="successModalContent">
+     You minted token ID #123
+    </p>
+    <button class="btn-glass block mx-auto text-base font-semibold tracking-wide" id="successModalCloseBtn" type="button">
+     Close
+    </button>
+   </div>
+  </div>
+  <!-- Notification Toast -->
+  <div aria-live="assertive" class="fixed bottom-6 right-6 max-w-xs w-full bg-indigo-900 border border-indigo-700 rounded-lg shadow-lg p-3 text-indigo-300 font-semibold text-center opacity-0 pointer-events-none transition-opacity z-50" id="notificationToast" role="alert" tabindex="0">
+  </div>
+  <script type="module">
+   import { ethers } from "https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.esm.min.js";
+
+    // Contract ABI and Address (replace with your deployed contract address)
+    const CONTRACT_ADDRESS = "0xYourDeployedContractAddressHere";
+
+    // ABI generated from the Solidity contract below
+    const CONTRACT_ABI = [
+      {
+        "inputs": [
+          {
+            "internalType": "string",
+            "name": "baseURI_",
+            "type": "string"
+          },
+          {
+            "internalType": "address[]",
+            "name": "teamAddresses",
+            "type": "address[]"
+          },
+          {
+            "internalType": "address[]",
+            "name": "gtdAddresses",
+            "type": "address[]"
+          }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "constructor"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "owner",
+            "type": "address"
+          },
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "approved",
+            "type": "address"
+          },
+          {
+            "indexed": true,
+            "internalType": "uint256",
+            "name": "tokenId",
+            "type": "uint256"
+          }
+        ],
+        "name": "Approval",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "owner",
+            "type": "address"
+          },
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "operator",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "bool",
+            "name": "approved",
+            "type": "bool"
+          }
+        ],
+        "name": "ApprovalForAll",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "previousOwner",
+            "type": "address"
+          },
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "newOwner",
+            "type": "address"
+          }
+        ],
+        "name": "OwnershipTransferred",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "from",
+            "type": "address"
+          },
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "to",
+            "type": "address"
+          },
+          {
+            "indexed": true,
+            "internalType": "uint256",
+            "name": "tokenId",
+            "type": "uint256"
+          }
+        ],
+        "name": "Transfer",
+        "type": "event"
+      },
+      {
+        "inputs": [],
+        "name": "MAX_SUPPLY",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "MINTPASS_NAME",
+        "outputs": [
+          {
+            "internalType": "string",
+            "name": "",
+            "type": "string"
+          }
+        ],
+        "stateMutability": "pure",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "MINTPASS_SYMBOL",
+        "outputs": [
+          {
+            "internalType": "string",
+            "name": "",
+            "type": "string"
+          }
+        ],
+        "stateMutability": "pure",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "baseURI",
+        "outputs": [
+          {
+            "internalType": "string",
+            "name": "",
+            "type": "string"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "currentPhase",
+        "outputs": [
+          {
+            "internalType": "uint8",
+            "name": "",
+            "type": "uint8"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "endMintTimestamp",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "mintStartTimestamp",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "owner",
+        "outputs": [
+          {
+            "internalType": "address",
+            "name": "",
+            "type": "address"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "phaseEndTimestamp",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "phaseStartTimestamp",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "publicMintPrice",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "pure",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "gtdMintPrice",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "pure",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "to",
+            "type": "address"
+          }
+        ],
+        "name": "isTeamWallet",
+        "outputs": [
+          {
+            "internalType": "bool",
+            "name": "",
+            "type": "bool"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "to",
+            "type": "address"
+          }
+        ],
+        "name": "isGtdWallet",
+        "outputs": [
+          {
+            "internalType": "bool",
+            "name": "",
+            "type": "bool"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "mintedCount",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "teamMintedCount",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "gtdMintedCount",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "publicMintedCount",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "royaltyInfo",
+        "outputs": [
+          {
+            "internalType": "address",
+            "name": "receiver",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "royaltyAmount",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "uint256",
+            "name": "quantity",
+            "type": "uint256"
+          }
+        ],
+        "name": "mint",
+        "outputs": [],
+        "stateMutability": "payable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "uint256",
+            "name": "tokenId",
+            "type": "uint256"
+          }
+        ],
+        "name": "tokenURI",
+        "outputs": [
+          {
+            "internalType": "string",
+            "name": "",
+            "type": "string"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "totalSupply",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      }
+    ];
+
+    // Mint Phases Enum
+    const PHASES = {
+      0: "Not Started",
+      1: "Team Mint",
+      2: "Guaranteed FCFS Mint",
+      3: "Public Mint",
+      4: "Ended"
+    };
+
+    // Mint phase durations and timestamps (UTC)
+    // Mint Start: 11 Sep 2025 00:00 UTC
+    // Team Mint: 10 minutes
+    // GTD Mint: 4 hours after team mint
+    // Public Mint: until 12 hours total from start
+
+    const MINT_START_TIMESTAMP = Date.UTC(2025, 8, 11, 0, 0, 0) / 1000; // JS months 0-based, so 8 = September
+    const TEAM_PHASE_DURATION = 10 * 60; // 10 minutes in seconds
+    const GTD_PHASE_DURATION = 4 * 60 * 60; // 4 hours in seconds
+    const TOTAL_MINT_DURATION = 12 * 60 * 60; // 12 hours in seconds
+
+    // Prices in ETH
+    const TEAM_PRICE = 0; // free
+    const GTD_PRICE = 0.0002;
+    const PUBLIC_PRICE = 0.0005;
+
+    // Supply limits
+    const MAX_SUPPLY = 50;
+    const TEAM_SUPPLY = 10;
+    const GTD_SUPPLY = 20;
+    const PUBLIC_SUPPLY = 20;
+
+    // Whitelist addresses (for demo, use dummy addresses)
+    // In production, these should be fetched from backend or contract
+    const TEAM_WHITELIST = [
+      "0x1111111111111111111111111111111111111111",
+      "0x2222222222222222222222222222222222222222",
+      "0x3333333333333333333333333333333333333333",
+      "0x4444444444444444444444444444444444444444",
+      "0x5555555555555555555555555555555555555555",
+      "0x6666666666666666666666666666666666666666",
+      "0x7777777777777777777777777777777777777777",
+      "0x8888888888888888888888888888888888888888",
+      "0x9999999999999999999999999999999999999999",
+      "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    ];
+
+    const GTD_WHITELIST = [
+      "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "0xcccccccccccccccccccccccccccccccccccccccc",
+      "0xdddddddddddddddddddddddddddddddddddddddd",
+      "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "0xffffffffffffffffffffffffffffffffffffffff",
+      "0x1234567890123456789012345678901234567890",
+      "0x0987654321098765432109876543210987654321",
+      "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd",
+      "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
+      "0xcafebabecafebabecafebabecafebabecafebabe",
+      "0xfeedfeedfeedfeedfeedfeedfeedfeedfeedfeed",
+      "0xfacefacefacefacefacefacefacefacefaceface",
+      "0xabad1deabad1deabad1deabad1deabad1deabad",
+      "0xdecafdecafdecafdecafdecafdecafdecafdecaf",
+      "0xbeefbeefbeefbeefbeefbeefbeefbeefbeefbeef",
+      "0x0badf00d0badf00d0badf00d0badf00d0badf00d",
+      "0xdeadbabe0deadbabe0deadbabe0deadbabe0dead",
+      "0xfaceb00cfaceb00cfaceb00cfaceb00cfaceb00c",
+      "0xfeedfacefeedfacefeedfacefeedfacefeedface",
+      "0xc0ffee0dc0ffee0dc0ffee0dc0ffee0dc0ffee0d"
+    ];
+
+    // Global state
+    let provider;
+    let signer;
+    let userAddress = null;
+    let contract;
+
+    // Mint counts (will be fetched from contract)
+    let totalMinted = 0;
+    let teamMinted = 0;
+    let gtdMinted = 0;
+    let publicMinted = 0;
+
+    // UI elements
+    const walletConnectBtn = document.getElementById("walletConnectBtn");
+    const mintButton = document.getElementById("mintButton");
+    const phaseInfo = document.getElementById("phaseInfo");
+    const phaseCountdown = document.getElementById("phaseCountdown");
+    const totalMintedEl = document.getElementById("totalMinted");
+    const remainingSupplyEl = document.getElementById("remainingSupply");
+    const progressBar = document.getElementById("progressBar");
+    const progressText = document.getElementById("progressText");
+    const dashboardProgressBar = document.getElementById("dashboardProgressBar");
+    const dashboardProgressText = document.getElementById("dashboardProgressText");
+    const txHistoryEl = document.getElementById("txHistory");
+    const successModal = document.getElementById("successModal");
+    const successModalContent = document.getElementById("successModalContent");
+    const successModalCloseBtn = document.getElementById("successModalCloseBtn");
+    const notificationToast = document.getElementById("notificationToast");
+    const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+    const mobileMenu = document.getElementById("mobileMenu");
+
+    // Mobile menu toggle
+    mobileMenuBtn.addEventListener("click", () => {
+      if (mobileMenu.classList.contains("hidden")) {
+        mobileMenu.classList.remove("hidden");
+      } else {
+        mobileMenu.classList.add("hidden");
+      }
+    });
+
+    // Show notification toast
+    function showNotification(message, type = "info", duration = 4000) {
+      notificationToast.textContent = message;
+      notificationToast.classList.remove("opacity-0", "pointer-events-none");
+      if (type === "error") {
+        notificationToast.classList.add("bg-red-700", "border-red-600");
+        notificationToast.classList.remove("bg-indigo-900", "border-indigo-700");
+      } else if (type === "success") {
+        notificationToast.classList.add("bg-green-700", "border-green-600");
+        notificationToast.classList.remove("bg-indigo-900", "border-indigo-700");
+      } else {
+        notificationToast.classList.add("bg-indigo-900", "border-indigo-700");
+        notificationToast.classList.remove("bg-red-700", "border-red-600", "bg-green-700", "border-green-600");
+      }
+      notificationToast.focus();
+      setTimeout(() => {
+        notificationToast.classList.add("opacity-0", "pointer-events-none");
+      }, duration);
+    }
+
+    // Connect wallet function
+    async function connectWallet() {
+      if (!window.ethereum) {
+        showNotification("MetaMask or compatible wallet not detected.", "error");
+        return;
+      }
+      try {
+        await window.ethereum.request({ method: "eth_requestAccounts" });
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        signer = provider.getSigner();
+        userAddress = await signer.getAddress();
+        walletConnectBtn.innerHTML = `<i class="fas fa-wallet text-indigo-400 text-base"></i> <span class="text-indigo-300 text-sm font-semibold">${userAddress.slice(0, 6)}...${userAddress.slice(-4)}</span>`;
+        walletConnectBtn.disabled = true;
+        contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+        await refreshMintData();
+        startCountdownTimer();
+        listenToEvents();
+      } catch (err) {
+        showNotification("Wallet connection failed.", "error");
+      }
+    }
+
+    walletConnectBtn.addEventListener("click", connectWallet);
+
+    // Determine current phase based on time
+    function getCurrentPhase() {
+      const now = Math.floor(Date.now() / 1000);
+      if (now < MINT_START_TIMESTAMP) return 0; // Not started
+      if (now < MINT_START_TIMESTAMP + TEAM_PHASE_DURATION) return 1; // Team Mint
+      if (now < MINT_START_TIMESTAMP + TEAM_PHASE_DURATION + GTD_PHASE_DURATION) return 2; // GTD Mint
+      if (now < MINT_START_TIMESTAMP + TOTAL_MINT_DURATION) return 3; // Public Mint
+      return 4; // Ended
+    }
+
+    // Check if user is whitelisted for team or GTD
+    function isUserTeam() {
+      if (!userAddress) return false;
+      return TEAM_WHITELIST.some(addr => addr.toLowerCase() === userAddress.toLowerCase());
+    }
+    function isUserGtd() {
+      if (!userAddress) return false;
+      return GTD_WHITELIST.some(addr => addr.toLowerCase() === userAddress.toLowerCase());
+    }
+
+    // Update UI phase info and mint button
+    function updatePhaseUI() {
+      const phase = getCurrentPhase();
+      let phaseText = PHASES[phase];
+      let priceEth = 0;
+      let supplyLeft = 0;
+      let canMint = false;
+      let mintButtonText = "";
+      let phaseEndTimestamp = 0;
+
+      switch (phase) {
+        case 0:
+          phaseText = "Mint has not started yet.";
+          mintButtonText = "Mint Not Started";
+          canMint = false;
+          phaseEndTimestamp = MINT_START_TIMESTAMP;
+          break;
+        case 1:
+          phaseText = "Team Mint Phase (Free for whitelisted team wallets)";
+          priceEth = TEAM_PRICE;
+          supplyLeft = TEAM_SUPPLY - teamMinted;
+          phaseEndTimestamp = MINT_START_TIMESTAMP + TEAM_PHASE_DURATION;
+          if (isUserTeam() && supplyLeft > 0) {
+            canMint = true;
+            mintButtonText = "Mint Free (Team)";
+          } else {
+            canMint = false;
+            mintButtonText = isUserTeam() ? "Team Supply Sold Out" : "Not Whitelisted for Team Mint";
+          }
+          break;
+        case 2:
+          phaseText = "Guaranteed FCFS Mint Phase (0.0002 ETH for whitelisted wallets)";
+          priceEth = GTD_PRICE;
+          supplyLeft = GTD_SUPPLY - gtdMinted;
+          phaseEndTimestamp = MINT_START_TIMESTAMP + TEAM_PHASE_DURATION + GTD_PHASE_DURATION;
+          if (isUserGtd() && supplyLeft > 0) {
+            canMint = true;
+            mintButtonText = "Mint 0.0002 ETH (GTD)";
+          } else {
+            canMint = false;
+            mintButtonText = isUserGtd() ? "GTD Supply Sold Out" : "Not Whitelisted for GTD Mint";
+          }
+          break;
+        case 3:
+          phaseText = "Public Mint Phase (0.0005 ETH)";
+          priceEth = PUBLIC_PRICE;
+          supplyLeft = MAX_SUPPLY - totalMinted;
+          phaseEndTimestamp = MINT_START_TIMESTAMP + TOTAL_MINT_DURATION;
+          if (supplyLeft > 0) {
+            canMint = true;
+            mintButtonText = "Mint 0.0005 ETH (Public)";
+          } else {
+            canMint = false;
+            mintButtonText = "Sold Out";
+          }
+          break;
+        case 4:
+          phaseText = "Minting has ended.";
+          mintButtonText = "Mint Ended";
+          canMint = false;
+          phaseEndTimestamp = 0;
+          break;
+      }
+
+      phaseInfo.textContent = phaseText;
+      mintButton.textContent = mintButtonText;
+      mintButton.disabled = !canMint;
+
+      // Update countdown timer
+      if (phaseEndTimestamp > 0) {
+        updateCountdown(phaseEndTimestamp);
+      } else {
+        phaseCountdown.textContent = "";
+      }
+    }
+
+    // Countdown timer update
+    let countdownInterval;
+    function updateCountdown(endTimestamp) {
+      clearInterval(countdownInterval);
+      function update() {
+        const now = Math.floor(Date.now() / 1000);
+        let diff = endTimestamp - now;
+        if (diff <= 0) {
+          phaseCountdown.textContent = "Phase ended";
+          clearInterval(countdownInterval);
+          refreshMintData();
+          return;
+        }
+        const h = Math.floor(diff / 3600);
+        const m = Math.floor((diff % 3600) / 60);
+        const s = diff % 60;
+        phaseCountdown.textContent = `Phase ends in ${h}h ${m}m ${s}s`;
+      }
+      update();
+      countdownInterval = setInterval(update, 1000);
+    }
+
+    // Start countdown timer for current phase
+    function startCountdownTimer() {
+      const phase = getCurrentPhase();
+      let phaseEndTimestamp = 0;
+      switch (phase) {
+        case 0:
+          phaseEndTimestamp = MINT_START_TIMESTAMP;
+          break;
+        case 1:
+          phaseEndTimestamp = MINT_START_TIMESTAMP + TEAM_PHASE_DURATION;
+          break;
+        case 2:
+          phaseEndTimestamp = MINT_START_TIMESTAMP + TEAM_PHASE_DURATION + GTD_PHASE_DURATION;
+          break;
+        case 3:
+          phaseEndTimestamp = MINT_START_TIMESTAMP + TOTAL_MINT_DURATION;
+          break;
+        default:
+          phaseEndTimestamp = 0;
+      }
+      if (phaseEndTimestamp > 0) {
+        updateCountdown(phaseEndTimestamp);
+      }
+    }
+
+    // Refresh mint data from contract
+    async function refreshMintData() {
+      if (!contract) return;
+      try {
+        totalMinted = (await contract.mintedCount()).toNumber();
+        teamMinted = (await contract.teamMintedCount()).toNumber();
+        gtdMinted = (await contract.gtdMintedCount()).toNumber();
+        publicMinted = (await contract.publicMintedCount()).toNumber();
+
+        totalMintedEl.textContent = totalMinted;
+        remainingSupplyEl.textContent = MAX_SUPPLY - totalMinted;
+
+        const percent = Math.floor((totalMinted / MAX_SUPPLY) * 100);
+        progressBar.style.width = `${percent}%`;
+        progressText.textContent = `${totalMinted} / ${MAX_SUPPLY} Minted (${percent}%)`;
+
+        dashboardProgressBar.style.width = `${percent}%`;
+        dashboardProgressText.textContent = `${totalMinted} / ${MAX_SUPPLY} Minted (${percent}%)`;
+
+        updatePhaseUI();
+      } catch (err) {
+        console.error("Error fetching mint data:", err);
+      }
+    }
+
+    // Mint function
+    async function mint() {
+      if (!contract || !signer || !userAddress) {
+        showNotification("Connect your wallet first.", "error");
+        return;
+      }
+      const phase = getCurrentPhase();
+      if (phase === 0) {
+        showNotification("Mint has not started yet.", "error");
+        return;
+      }
+      if (phase === 4) {
+        showNotification("Minting has ended.", "error");
+        return;
+      }
+
+      let price = 0;
+      let supplyLeft = 0;
+      let isEligible = false;
+
+      switch (phase) {
+        case 1:
+          isEligible = isUserTeam();
+          supplyLeft = TEAM_SUPPLY - teamMinted;
+          price = ethers.utils.parseEther("0");
+          break;
+        case 2:
+          isEligible = isUserGtd();
+          supplyLeft = GTD_SUPPLY - gtdMinted;
+          price = ethers.utils.parseEther(GTD_PRICE.toString());
+          break;
+        case 3:
+          isEligible = true;
+          supplyLeft = MAX_SUPPLY - totalMinted;
+          price = ethers.utils.parseEther(PUBLIC_PRICE.toString());
+          break;
+      }
+
+      if (!isEligible) {
+        showNotification("You are not eligible to mint in this phase.", "error");
+        return;
+      }
+      if (supplyLeft <= 0) {
+        showNotification("No supply left in this phase.", "error");
+        return;
+      }
+
+      mintButton.disabled = true;
+      mintButton.textContent = "Minting...";
+
+      try {
+        const tx = await contract.mint(1, { value: price });
+        showNotification("Transaction sent. Waiting for confirmation...", "info", 6000);
+        const receipt = await tx.wait();
+        const tokenId = receipt.events.find(e => e.event === "Transfer").args.tokenId.toString();
+        showSuccessModal(tokenId);
+        await refreshMintData();
+      } catch (err) {
+        if (err.data && err.data.message) {
+          showNotification(err.data.message, "error");
+        } else if (err.message) {
+          showNotification(err.message, "error");
+        } else {
+          showNotification("Minting failed.", "error");
+        }
+      } finally {
+        mintButton.disabled = false;
+        updatePhaseUI();
+      }
+    }
+
+    mintButton.addEventListener("click", mint);
+
+    // Show success modal
+    function showSuccessModal(tokenId) {
+      successModalContent.textContent = `You minted token ID #${tokenId}`;
+      successModal.classList.remove("hidden");
+      successModal.focus();
+    }
+    successModalCloseBtn.addEventListener("click", () => {
+      successModal.classList.add("hidden");
+      mintButton.focus();
+    });
+
+    // Listen to Transfer events for updating tx history
+    function listenToEvents() {
+      if (!contract) return;
+      contract.on("Transfer", (from, to, tokenId, event) => {
+        const time = new Date().toLocaleTimeString();
+        const shortTo = to.slice(0, 6) + "..." + to.slice(-4);
+        const shortFrom = from === ethers.constants.AddressZero ? "Mint" : from.slice(0, 6) + "..." + from.slice(-4);
+        const txEntry = document.createElement("div");
+        txEntry.className = "flex justify-between bg-indigo-800 rounded px-3 py-1 hover:bg-indigo-700 transition cursor-default select-text";
+        txEntry.innerHTML = `
+          <span>Token #${tokenId.toString()}</span>
+          <span>From: ${shortFrom}</span>
+          <span>To: ${shortTo}</span>
+          <span class="font-mono text-[10px] text-indigo-400">${time}</span>
+        `;
+        if (txHistoryEl.children.length >= 10) {
+          txHistoryEl.removeChild(txHistoryEl.lastChild);
+        }
+        txHistoryEl.prepend(txEntry);
+      });
+    }
+
+    // On page load, check if wallet already connected
+    async function init() {
+      if (window.ethereum && window.ethereum.selectedAddress) {
+        await connectWallet();
+      }
+      updatePhaseUI();
+      startCountdownTimer();
+    }
+
+    window.addEventListener("load", init);
+  </script>
+  <!-- Solidity Smart Contract -->
+  <!--
+  SPDX-License-Identifier: MIT
+  pragma solidity ^0.8.17;
+
+  import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+  import "@openzeppelin/contracts/access/Ownable.sol";
+  import "@openzeppelin/contracts/token/common/ERC2981.sol";
+
+  contract MintablePass is ERC721Enumerable, Ownable, ERC2981 {
+      string private baseURI;
+      uint256 public constant MAX_SUPPLY = 50;
+
+      uint256 public constant TEAM_SUPPLY = 10;
+      uint256 public constant GTD_SUPPLY = 20;
+      uint256 public constant PUBLIC_SUPPLY = 20;
+
+      uint256 public teamMintedCount;
+      uint256 public gtdMintedCount;
+      uint256 public publicMintedCount;
+
+      uint256 public mintStartTimestamp;
+      uint256 public constant TEAM_PHASE_DURATION = 10 minutes;
+      uint256 public constant GTD_PHASE_DURATION = 4 hours;
+      uint256 public constant TOTAL_MINT_DURATION = 12 hours;
+
+      mapping(address => bool) public teamWhitelist;
+      mapping(address => bool) public gtdWhitelist;
+
+      constructor(
+          string memory baseURI_,
+          address[] memory teamAddresses,
+          address[] memory gtdAddresses
+      ) ERC721("Mintable Pass", "MINTPASS") {
+          baseURI = baseURI_;
+          mintStartTimestamp = 1747200000; // 11 Sep 2025 00:00 UTC (Unix timestamp)
+
+          for (uint256 i = 0; i < teamAddresses.length; i++) {
+              teamWhitelist[teamAddresses[i]] = true;
+          }
+          for (uint256 i = 0; i < gtdAddresses.length; i++) {
+              gtdWhitelist[gtdAddresses[i]] = true;
+          }
+
+          // Set 5% royalties to contract owner
+          _setDefaultRoyalty(msg.sender, 500);
+      }
+
+      function currentPhase() public view returns (uint8) {
+          if (block.timestamp < mintStartTimestamp) {
+              return 0; // Not started
+          } else if (block.timestamp < mintStartTimestamp + TEAM_PHASE_DURATION) {
+              return 1; // Team Mint
+          } else if (block.timestamp < mintStartTimestamp + TEAM_PHASE_DURATION + GTD_PHASE_DURATION) {
+              return 2; // GTD Mint
+          } else if (block.timestamp < mintStartTimestamp + TOTAL_MINT_DURATION) {
+              return 3; // Public Mint
+          } else {
+              return 4; // Ended
+          }
+      }
+
+      function mint(uint256 quantity) external payable {
+          require(quantity == 1, "Can only mint 1 at a time");
+          require(totalSupply() + quantity <= MAX_SUPPLY, "Exceeds max supply");
+          uint8 phase = currentPhase();
+          require(phase != 0 && phase != 4, "Mint not active");
+
+          if (phase == 1) {
+              require(teamWhitelist[msg.sender], "Not whitelisted for team mint");
+              require(teamMintedCount + quantity <= TEAM_SUPPLY, "Team supply exceeded");
+              require(msg.value == 0, "Team mint is free");
+              teamMintedCount += quantity;
+          } else if (phase == 2) {
+              require(gtdWhitelist[msg.sender], "Not whitelisted for GTD mint");
+              require(gtdMintedCount + quantity <= GTD_SUPPLY, "GTD supply exceeded");
+              require(msg.value == 0.0002 ether * quantity, "Incorrect ETH amount");
+              gtdMintedCount += quantity;
+          } else if (phase == 3) {
+              require(publicMintedCount + quantity <= PUBLIC_SUPPLY, "Public supply exceeded");
+              require(msg.value == 0.0005 ether * quantity, "Incorrect ETH amount");
+              publicMintedCount += quantity;
+          }
+
+          _safeMint(msg.sender, totalSupply() + 1);
+      }
+
+      function _baseURI() internal view override returns (string memory) {
+          return baseURI;
+      }
+
+      // ERC2981 royalty info override
+      function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721Enumerable, ERC2981) returns (bool) {
+          return ERC721Enumerable.supportsInterface(interfaceId) || ERC2981.supportsInterface(interfaceId);
+      }
+  }
+  -->
+ </body>
+</html>
