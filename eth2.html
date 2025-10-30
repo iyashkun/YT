@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ethereum Wallet : Connect</title>
+  <title>Ether Vault : Shadow Connect</title>
 
   <!-- Tailwind CSS -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
@@ -14,39 +14,74 @@
   <style>
     body {
       font-family: 'Viga', sans-serif;
-      background: linear-gradient(145deg, #0b0b0b, #2b0033);
+      background: linear-gradient(145deg, #000000, #100010);
+      color: #ffffff;
     }
 
-    @keyframes bounce {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-5px); }
+    .info-box {
+      background: #111111;
+      border: 1px solid #333333;
+    }
+
+    .permission-item {
+      border-left: 3px solid #4a0a4a;
+      padding-left: 12px;
+      margin-bottom: 8px;
+    }
+
+    button {
+      transition: none;
+    }
+
+    /* Remove all shadows */
+    * {
+      box-shadow: none !important;
     }
   </style>
 </head>
 <body class="text-white min-h-screen flex flex-col items-center justify-center p-6">
 
   <!-- Toast Notification -->
-  <div id="toast" class="fixed top-5 right-5 bg-gray-800 text-white px-4 py-2 rounded-xl shadow-lg hidden text-sm z-50"></div>
+  <div id="toast" class="fixed top-5 right-5 bg-black text-white px-4 py-2 rounded-xl hidden text-sm z-50 border border-gray-600"></div>
 
   <!-- Wallet Connect Button -->
   <div class="relative">
-    <button id="walletBtn" onclick="handleWalletClick()" class="bg-purple-600 hover:bg-purple-700 px-5 py-3 rounded-xl text-sm font-bold transition">
-      Connect Wallet
+    <button id="walletBtn" onclick="handleWalletClick()" class="bg-purple-800 px-6 py-4 rounded-xl text-sm font-bold">
+      Connect Vault
     </button>
 
     <!-- Dropdown -->
-    <div id="dropdown" class="absolute top-14 right-0 bg-gray-800 border border-gray-700 rounded-xl shadow-xl w-44 hidden">
-      <button onclick="copyAddress()" class="w-full px-4 py-2 text-left text-sm hover:bg-gray-700 rounded-t-xl">Copy Address</button>
-      <button onclick="disconnectWallet()" class="w-full px-4 py-2 text-left text-sm hover:bg-gray-700 rounded-b-xl">Disconnect</button>
+    <div id="dropdown" class="absolute top-16 right-0 bg-black border border-gray-600 rounded-xl w-48 hidden mt-2">
+      <button onclick="copyAddress()" class="w-full px-4 py-3 text-left text-sm border-b border-gray-600">Copy Address</button>
+      <button onclick="disconnectWallet()" class="w-full px-4 py-3 text-left text-sm">Disconnect</button>
     </div>
   </div>
 
   <!-- Dashboard -->
-  <div class="mt-10 text-center">
-    <h2 class="text-xl font-semibold mb-2">Dashboard</h2>
-    <div class="bg-gray-800 p-4 rounded-xl w-64 mx-auto shadow-lg">
-      <p class="text-sm text-gray-300">Current ETH Balance:</p>
-      <p id="balance" class="text-lg font-bold text-yellow-300 mt-1">0.00</p>
+  <div class="mt-12 text-center">
+    <h2 class="text-2xl font-semibold mb-4">Shadow Vault</h2>
+    <div class="bg-black p-6 rounded-xl w-72 mx-auto border border-gray-600">
+      <p class="text-sm text-gray-400 mb-2">ETH Reserves:</p>
+      <p id="balance" class="text-xl font-bold text-purple-300">0.0000</p>
+    </div>
+  </div>
+
+  <!-- Permissions Info -->
+  <div class="mt-8 w-80 mx-auto">
+    <h3 class="text-lg font-semibold mb-3 text-center">Vault Permissions</h3>
+    <div class="info-box p-4 rounded-xl">
+      <div class="permission-item">
+        <strong>Address Access:</strong> View your ETH address and balance on Ethereum Mainnet.
+      </div>
+      <div class="permission-item">
+        <strong>Signature Requests:</strong> Approve transaction signatures for secure sends and smart contract interactions.
+      </div>
+      <div class="permission-item">
+        <strong>Network Sync:</strong> Auto-detect and connect to Ethereum nodes for real-time updates.
+      </div>
+      <div class="permission-item">
+        <strong>Security Note:</strong> No private keys are stored. Revoke access anytime via wallet settings.
+      </div>
     </div>
   </div>
 
@@ -61,16 +96,15 @@
     }
 
     function truncateAddress(addr) {
-      return `${addr.slice(0, 6)}.....${addr.slice(-6)}`;
+      return `${addr.slice(0, 6)}.....${addr.slice(-4)}`;
     }
 
     async function connectEthereumWallet() {
-      showToast('Connecting.');
-      await new Promise(r => setTimeout(r, 500));
-      showToast('Connecting..');
-      await new Promise(r => setTimeout(r, 500));
-      showToast('Connecting...');
-      await new Promise(r => setTimeout(r, 500));
+      showToast('Initializing.');
+      await new Promise(r => setTimeout(r, 600));
+      showToast('Linking shadows..');
+      await new Promise(r => setTimeout(r, 600));
+      showToast('Sealing vault...');
 
       if (typeof window.ethereum !== "undefined") {
         try {
@@ -78,23 +112,23 @@
           connectedAddress = accounts[0];
           document.getElementById("walletBtn").innerText = truncateAddress(connectedAddress);
           document.getElementById("walletBtn").onclick = toggleDropdown;
-          showToast("Connected!");
+          showToast("Vault Sealed.");
           getBalance();
         } catch (error) {
-          showToast("Connection Failed");
+          showToast("Link Failed");
         }
       } else {
-        showToast("Ethereum Wallet Not Found (Install MetaMask?)");
+        showToast("No Vault Detected (MetaMask?)");
       }
     }
 
     function disconnectWallet() {
       connectedAddress = null;
-      document.getElementById("walletBtn").innerText = "Connect Wallet";
+      document.getElementById("walletBtn").innerText = "Connect Vault";
       document.getElementById("walletBtn").onclick = handleWalletClick;
       document.getElementById("dropdown").classList.add("hidden");
-      document.getElementById("balance").innerText = "0.00";
-      showToast("Disconnected");
+      document.getElementById("balance").innerText = "0.0000";
+      showToast("Vault Released");
     }
 
     function handleWalletClick() {
@@ -109,7 +143,7 @@
     function copyAddress() {
       if (connectedAddress) {
         navigator.clipboard.writeText(connectedAddress);
-        showToast("Address Copied");
+        showToast("Shadow Copied");
       }
     }
 
@@ -117,9 +151,9 @@
       try {
         const balance = await window.ethereum.request({ method: 'eth_getBalance', params: [connectedAddress, 'latest'] });
         const eth = parseFloat(parseInt(balance, 16) / 1e18).toFixed(4);
-        document.getElementById("balance").innerText = `${eth} ETH`;
+        document.getElementById("balance").innerText = `${eth}`;
       } catch (err) {
-        document.getElementById("balance").innerText = "0.00";
+        document.getElementById("balance").innerText = "0.0000";
       }
     }
 
