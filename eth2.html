@@ -3,323 +3,68 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ether Vault : Shadow Nexus</title>
+  <title>Ethereum Wallet : Connect</title>
 
   <!-- Tailwind CSS -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
-  <!-- Google Font: Inter (Modern, Clean like React Apps) -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Google Font: Viga -->
+  <link href="https://fonts.googleapis.com/css2?family=Viga&display=swap" rel="stylesheet">
 
   <style>
     body {
-      font-family: 'Inter', sans-serif;
-      background: #000000;
-      color: #ffffff;
-      line-height: 1.5;
-    }
-
-    .nexus-card {
-      background: #0a0a0a;
-      border: 1px solid #1a1a1a;
-      border-radius: 8px;
-      padding: 1rem;
-    }
-
-    .permission-item, .tx-item, .token-item, .nft-item, .stat-item {
-      border-left: 2px solid #4a0a4a;
-      padding-left: 0.75rem;
-      margin-bottom: 0.5rem;
-      font-size: 0.875rem;
-    }
-
-    button {
-      transition: none;
-    }
-
-    /* No shadows, no glows */
-    * {
-      box-shadow: none !important;
-    }
-
-    .header-title {
-      font-size: 1.75rem;
-      font-weight: 600;
-      color: #a855f7;
-      margin-bottom: 2rem;
-    }
-
-    .btn-connect {
-      padding: 0.75rem 1.5rem;
-      font-size: 0.875rem;
-      font-weight: 500;
-      background: #4a0a4a;
-      border: 1px solid #6b21a8;
-    }
-
-    .dropdown-item {
-      padding: 0.75rem 1rem;
-      font-size: 0.875rem;
-      border-bottom: 1px solid #1a1a1a;
-      background: transparent;
-    }
-
-    .dropdown-item:last-child {
-      border-bottom: none;
-    }
-
-    .section-title {
-      font-size: 1.125rem;
-      font-weight: 500;
-      color: #a855f7;
-      margin-bottom: 1rem;
-      text-align: center;
-    }
-
-    .balance-display {
-      font-size: 1.5rem;
-      font-weight: 600;
-      color: #a855f7;
-      margin-top: 0.5rem;
-    }
-
-    .grid-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 1.5rem;
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 1rem;
-    }
-
-    .list-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.5rem 0;
-      border-bottom: 1px solid #1a1a1a;
-    }
-
-    .list-item:last-child {
-      border-bottom: none;
-    }
-
-    .stat-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 1rem;
-      margin-top: 1rem;
-    }
-
-    .toast {
-      background: #0a0a0a;
-      border: 1px solid #1a1a1a;
-      border-radius: 6px;
-    }
-
-    /* Subtle fade-in for modern feel */
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .fade-in {
-      animation: fadeIn 0.5s ease-out;
+      font-family: 'Viga', sans-serif;
+      background: linear-gradient(145deg, #0b0b0b, #2b0033);
     }
   </style>
 </head>
-<body class="min-h-screen p-4">
+<body class="text-white min-h-screen flex flex-col items-center justify-center p-6">
 
   <!-- Toast Notification -->
-  <div id="toast" class="fixed top-4 right-4 px-3 py-2 rounded text-sm z-50 toast hidden"></div>
+  <div id="toast" class="fixed top-5 right-5 bg-gray-800 text-white px-4 py-2 rounded-xl hidden text-sm z-50"></div>
 
-  <!-- Header -->
-  <header class="text-center mb-8">
-    <h1 class="header-title">Shadow Nexus</h1>
-    <p class="text-gray-400 text-sm">Ethereum Vault Interface</p>
-  </header>
+  <!-- Wallet Connect Button -->
+  <div class="relative">
+    <button id="walletBtn" onclick="handleWalletClick()" class="bg-purple-600 px-5 py-3 rounded-xl text-sm font-bold transition">
+      Connect Wallet
+    </button>
 
-  <!-- Connect Section -->
-  <div class="text-center mb-8 fade-in">
-    <div class="relative inline-block">
-      <button id="walletBtn" onclick="handleWalletClick()" class="bg-purple-900 text-white rounded-lg btn-connect font-semibold border border-purple-700">
-        Connect Vault
-      </button>
-
-      <!-- Dropdown -->
-      <div id="dropdown" class="absolute top-full right-0 mt-2 bg-black border border-gray-700 rounded-lg w-48 hidden">
-        <button onclick="copyAddress()" class="w-full text-left dropdown-item text-gray-300">Copy Address</button>
-        <button onclick="switchNetwork()" class="w-full text-left dropdown-item text-gray-300">Switch Network</button>
-        <button onclick="viewTransactions()" class="w-full text-left dropdown-item text-gray-300">View Tx History</button>
-        <button onclick="manageTokens()" class="w-full text-left dropdown-item text-gray-300">Manage Tokens</button>
-        <button onclick="nftGallery()" class="w-full text-left dropdown-item text-gray-300">NFT Gallery</button>
-        <button onclick="analyticsDashboard()" class="w-full text-left dropdown-item text-gray-300">Analytics</button>
-        <button onclick="settingsPanel()" class="w-full text-left dropdown-item text-gray-300">Settings</button>
-        <button onclick="disconnectWallet()" class="w-full text-left dropdown-item text-gray-300">Disconnect</button>
-      </div>
+    <!-- Dropdown -->
+    <div id="dropdown" class="absolute top-14 right-0 bg-gray-800 border border-gray-700 rounded-xl w-44 hidden">
+      <button onclick="copyAddress()" class="w-full px-4 py-2 text-left text-sm rounded-t-xl">Copy Address</button>
+      <button onclick="disconnectWallet()" class="w-full px-4 py-2 text-left text-sm rounded-b-xl">Disconnect</button>
     </div>
   </div>
 
-  <!-- Main Grid Container -->
-  <div class="grid-container" id="mainContent" style="display: none;">
-    
-    <!-- Wallet Info Card -->
-    <div class="nexus-card fade-in">
-      <h3 class="section-title">Vault Core</h3>
-      <div class="text-center">
-        <p class="text-xs text-gray-400 mb-1">Address</p>
-        <p id="addressDisplay" class="text-sm text-purple-300 mb-2">Not Connected</p>
-        <p class="text-xs text-gray-400 mb-1">ETH Reserves</p>
-        <p id="balance" class="balance-display">0.0000</p>
-        <p class="text-xs text-gray-400 mt-1">Chain ID: <span id="chainId">1</span></p>
+  <!-- Dashboard -->
+  <div class="mt-10 text-center">
+    <h2 class="text-xl font-semibold mb-2">Dashboard</h2>
+    <div class="bg-gray-800 p-4 rounded-xl w-80 mx-auto">
+      <p class="text-sm text-gray-300">Current ETH Balance:</p>
+      <p id="balance" class="text-lg font-bold text-yellow-300 mt-1">0.00 ETH</p>
+      
+      <div id="stats" class="mt-4 hidden">
+        <p class="text-sm text-gray-300">First Transaction Date:</p>
+        <p id="firstTxDate" class="text-sm text-white mt-1">N/A</p>
+        
+        <p class="text-sm text-gray-300 mt-3">Last Transaction Date:</p>
+        <p id="lastTxDate" class="text-sm text-white mt-1">N/A</p>
+        
+        <p class="text-sm text-gray-300 mt-3">Total Transactions:</p>
+        <p id="totalTx" class="text-sm text-white mt-1">0</p>
+        
+        <p class="text-sm text-gray-300 mt-3">Total Sent Amount:</p>
+        <p id="totalSent" class="text-sm font-bold text-red-300 mt-1">0.00 ETH</p>
+        
+        <p class="text-sm text-gray-300 mt-3">Total Received Amount:</p>
+        <p id="totalReceived" class="text-sm font-bold text-green-300 mt-1">0.00 ETH</p>
       </div>
     </div>
-
-    <!-- Permissions Card -->
-    <div class="nexus-card fade-in">
-      <h3 class="section-title">Access Matrix</h3>
-      <div class="permission-item text-gray-300">
-        <strong>Address Query:</strong> Read ETH address and Mainnet balance queries.
-      </div>
-      <div class="permission-item text-gray-300">
-        <strong>Signature Auth:</strong> Sign tx for contracts, transfers, and DeFi interactions.
-      </div>
-      <div class="permission-item text-gray-300">
-        <strong>Network Probe:</strong> Detect chain ID, block number, and gas prices.
-      </div>
-      <div class="permission-item text-gray-300">
-        <strong>Event Listener:</strong> Subscribe to chain events and pending tx.
-      </div>
-      <div class="permission-item text-gray-300">
-        <strong>Token Scan:</strong> Query ERC20/721 balances and approvals.
-      </div>
-      <div class="permission-item text-gray-300">
-        <strong>Secure Vault:</strong> No keys exposed; full revocation control.
-      </div>
-    </div>
-
-    <!-- Recent Transactions Card -->
-    <div class="nexus-card fade-in">
-      <h3 class="section-title">Tx Ledger</h3>
-      <div id="txList">
-        <div class="list-item">
-          <span class="text-gray-400 text-xs">No Transactions</span>
-          <span class="text-purple-300 text-xs">Pending</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Token Portfolio Card -->
-    <div class="nexus-card fade-in">
-      <h3 class="section-title">Token Vault</h3>
-      <div id="tokenList">
-        <div class="token-item text-gray-300 text-xs">
-          <strong>USDC:</strong> 0.00
-        </div>
-        <div class="token-item text-gray-300 text-xs">
-          <strong>DAI:</strong> 0.00
-        </div>
-      </div>
-    </div>
-
-    <!-- NFT Gallery Card -->
-    <div class="nexus-card fade-in">
-      <h3 class="section-title">NFT Shadow</h3>
-      <div id="nftList">
-        <div class="nft-item text-gray-300 text-xs">
-          <strong>BAYC #1234:</strong> Floor 5.2 ETH
-        </div>
-        <div class="nft-item text-gray-300 text-xs">
-          <strong>CK #567:</strong> Floor 0.8 ETH
-        </div>
-      </div>
-    </div>
-
-    <!-- Analytics Card -->
-    <div class="nexus-card fade-in">
-      <h3 class="section-title">Nexus Stats</h3>
-      <div class="stat-grid">
-        <div class="text-center">
-          <p class="text-xs text-gray-400">Total Tx</p>
-          <p class="text-sm font-semibold text-purple-300" id="totalTx">0</p>
-        </div>
-        <div class="text-center">
-          <p class="text-xs text-gray-400">Gas Saved</p>
-          <p class="text-sm font-semibold text-purple-300" id="gasSaved">0 Gwei</p>
-        </div>
-        <div class="text-center">
-          <p class="text-xs text-gray-400">Uptime</p>
-          <p class="text-sm font-semibold text-purple-300" id="uptime">100%</p>
-        </div>
-        <div class="text-center">
-          <p class="text-xs text-gray-400">Risk Score</p>
-          <p class="text-sm font-semibold text-purple-300" id="riskScore">Low</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Wallet Insights Card -->
-    <div class="nexus-card fade-in col-span-full">
-      <h3 class="section-title">Insight Engine</h3>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="text-gray-300 text-sm">
-          <strong>DeFi Yield:</strong> 4.2% APY on stables.
-        </div>
-        <div class="text-gray-300 text-sm">
-          <strong>Gas Oracle:</strong> Current 20 Gwei, trending down.
-        </div>
-        <div class="text-gray-300 text-sm">
-          <strong>Alert Feed:</strong> No suspicious activity detected.
-        </div>
-        <div class="text-gray-300 text-sm">
-          <strong>Portfolio Heat:</strong> ETH dominance 85%.
-        </div>
-        <div class="text-gray-300 text-sm">
-          <strong>Bridge Status:</strong> L2 sync complete.
-        </div>
-        <div class="text-gray-300 text-sm">
-          <strong>Security Audit:</strong> Passed 99% checks.
-        </div>
-      </div>
-    </div>
-
-    <!-- Advanced Functions Card -->
-    <div class="nexus-card fade-in col-span-full">
-      <h3 class="section-title">Quantum Functions</h3>
-      <p class="text-gray-400 text-xs mb-2">Modern Ethereum Integrations</p>
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-        <button onclick="batchApproveTokens()" class="text-xs text-gray-300 py-1 border border-purple-700 rounded w-full">Batch Approve</button>
-        <button onclick="simulateTx()" class="text-xs text-gray-300 py-1 border border-purple-700 rounded w-full">Simulate Tx</button>
-        <button onclick="autoCompound()" class="text-xs text-gray-300 py-1 border border-purple-700 rounded w-full">Auto Compound</button>
-        <button onclick="gasOptimizer()" class="text-xs text-gray-300 py-1 border border-purple-700 rounded w-full">Gas Optimize</button>
-        <button onclick="crossChainBridge()" class="text-xs text-gray-300 py-1 border border-purple-700 rounded w-full">Bridge Assets</button>
-        <button onclick="oracleFeed()" class="text-xs text-gray-300 py-1 border border-purple-700 rounded w-full">Oracle Query</button>
-        <button onclick="ensResolver()" class="text-xs text-gray-300 py-1 border border-purple-700 rounded w-full">ENS Resolve</button>
-        <button onclick="multisigSetup()" class="text-xs text-gray-300 py-1 border border-purple-700 rounded w-full">Multisig</button>
-        <button onclick="zkProofVerify()" class="text-xs text-gray-300 py-1 border border-purple-700 rounded w-full">ZK Verify</button>
-        <button onclick="accountAbstraction()" class="text-xs text-gray-300 py-1 border border-purple-700 rounded w-full">AA Wallet</button>
-        <button onclick="flashLoanSim()" class="text-xs text-gray-300 py-1 border border-purple-700 rounded w-full">Flash Loan</button>
-        <button onclick="mevProtect()" class="text-xs text-gray-300 py-1 border border-purple-700 rounded w-full">MEV Guard</button>
-      </div>
-    </div>
-
   </div>
 
   <script>
     let connectedAddress = null;
-    let mockTxs = [
-      { hash: '0xabc...', from: 'You', to: 'Contract', value: '0.1 ETH', status: 'Confirmed' },
-      { hash: '0xdef...', from: 'Exchange', to: 'You', value: '1.5 ETH', status: 'Pending' }
-    ];
-    let mockTokens = [
-      { symbol: 'USDC', balance: 1000.00 },
-      { symbol: 'DAI', balance: 500.00 },
-      { symbol: 'WBTC', balance: 0.05 }
-    ];
-    let mockNfts = [
-      { collection: 'BAYC', id: 1234, floor: 5.2 },
-      { collection: 'CryptoKitties', id: 567, floor: 0.8 }
-    ];
+    const API_KEY = 'YourApiKeyHere'; // Replace with your free Etherscan API key from https://etherscan.io/apis
 
     function showToast(message) {
       const toast = document.getElementById('toast');
@@ -329,15 +74,16 @@
     }
 
     function truncateAddress(addr) {
-      return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+      return `${addr.slice(0, 6)}.....${addr.slice(-6)}`;
     }
 
     async function connectEthereumWallet() {
-      showToast('Initializing Nexus.');
-      await new Promise(r => setTimeout(r, 600));
-      showToast('Syncing shadows...');
-      await new Promise(r => setTimeout(r, 600));
-      showToast('Sealing core...');
+      showToast('Connecting.');
+      await new Promise(r => setTimeout(r, 500));
+      showToast('Connecting..');
+      await new Promise(r => setTimeout(r, 500));
+      showToast('Connecting...');
+      await new Promise(r => setTimeout(r, 500));
 
       if (typeof window.ethereum !== "undefined") {
         try {
@@ -345,106 +91,25 @@
           connectedAddress = accounts[0];
           document.getElementById("walletBtn").innerText = truncateAddress(connectedAddress);
           document.getElementById("walletBtn").onclick = toggleDropdown;
-          document.getElementById("addressDisplay").innerText = truncateAddress(connectedAddress);
-          showToast("Nexus Activated.");
+          showToast("Connected!");
           getBalance();
-          getChainId();
-          renderMockData();
-          document.getElementById("mainContent").style.display = "grid";
+          fetchTransactionStats();
         } catch (error) {
-          showToast("Sync Failed");
+          showToast("Connection Failed");
         }
       } else {
-        showToast("No Core Detected (MetaMask?)");
+        showToast("Ethereum Wallet Not Found (Install MetaMask?)");
       }
     }
-
-    async function getBalance() {
-      try {
-        const balance = await window.ethereum.request({ method: 'eth_getBalance', params: [connectedAddress, 'latest'] });
-        const eth = parseFloat(parseInt(balance, 16) / 1e18).toFixed(4);
-        document.getElementById("balance").innerText = `${eth}`;
-      } catch (err) {
-        document.getElementById("balance").innerText = "0.0000";
-      }
-    }
-
-    async function getChainId() {
-      try {
-        const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-        document.getElementById("chainId").innerText = parseInt(chainId, 16);
-      } catch (err) {
-        document.getElementById("chainId").innerText = "1";
-      }
-    }
-
-    function renderMockData() {
-      renderTxList();
-      renderTokenList();
-      renderNftList();
-      document.getElementById("totalTx").innerText = "47";
-      document.getElementById("gasSaved").innerText = "1.2k Gwei";
-      document.getElementById("uptime").innerText = "99.9%";
-      document.getElementById("riskScore").innerText = "Ultra Low";
-    }
-
-    function renderTxList() {
-      const txList = document.getElementById("txList");
-      txList.innerHTML = mockTxs.map(tx => `
-        <div class="list-item">
-          <span class="text-gray-400 text-xs">${tx.hash.slice(0,10)}... ${tx.value}</span>
-          <span class="text-purple-300 text-xs">${tx.status}</span>
-        </div>
-      `).join('');
-    }
-
-    function renderTokenList() {
-      const tokenList = document.getElementById("tokenList");
-      tokenList.innerHTML = mockTokens.map(token => `
-        <div class="token-item text-gray-300 text-xs">
-          <strong>${token.symbol}:</strong> ${token.balance.toFixed(2)}
-        </div>
-      `).join('');
-    }
-
-    function renderNftList() {
-      const nftList = document.getElementById("nftList");
-      nftList.innerHTML = mockNfts.map(nft => `
-        <div class="nft-item text-gray-300 text-xs">
-          <strong>${nft.collection} #${nft.id}:</strong> ${nft.floor} ETH
-        </div>
-      `).join('');
-    }
-
-    // Modern Functions (Mock Implementations)
-    function switchNetwork() { showToast("Switched to Polygon"); }
-    function viewTransactions() { showToast("Tx History Loaded"); }
-    function manageTokens() { showToast("Tokens Managed"); }
-    function nftGallery() { showToast("NFT Gallery Opened"); }
-    function analyticsDashboard() { showToast("Analytics Dashboard Active"); }
-    function settingsPanel() { showToast("Settings Panel Toggled"); }
-    function batchApproveTokens() { showToast("Batch Approved"); }
-    function simulateTx() { showToast("Tx Simulated"); }
-    function autoCompound() { showToast("Compounded"); }
-    function gasOptimizer() { showToast("Optimized"); }
-    function crossChainBridge() { showToast("Bridged"); }
-    function oracleFeed() { showToast("Oracle Fetched"); }
-    function ensResolver() { showToast("ENS Resolved"); }
-    function multisigSetup() { showToast("Multisig Setup"); }
-    function zkProofVerify() { showToast("ZK Verified"); }
-    function accountAbstraction() { showToast("AA Enabled"); }
-    function flashLoanSim() { showToast("Flash Loan Sim"); }
-    function mevProtect() { showToast("MEV Protected"); }
 
     function disconnectWallet() {
       connectedAddress = null;
-      document.getElementById("walletBtn").innerText = "Connect Vault";
+      document.getElementById("walletBtn").innerText = "Connect Wallet";
       document.getElementById("walletBtn").onclick = handleWalletClick;
       document.getElementById("dropdown").classList.add("hidden");
-      document.getElementById("balance").innerText = "0.0000";
-      document.getElementById("addressDisplay").innerText = "Not Connected";
-      document.getElementById("mainContent").style.display = "none";
-      showToast("Nexus Deactivated");
+      document.getElementById("balance").innerText = "0.00 ETH";
+      document.getElementById("stats").classList.add("hidden");
+      showToast("Disconnected");
     }
 
     function handleWalletClick() {
@@ -459,7 +124,75 @@
     function copyAddress() {
       if (connectedAddress) {
         navigator.clipboard.writeText(connectedAddress);
-        showToast("Shadow Copied");
+        showToast("Address Copied");
+      }
+    }
+
+    async function getBalance() {
+      try {
+        const balance = await window.ethereum.request({ method: 'eth_getBalance', params: [connectedAddress, 'latest'] });
+        const eth = parseFloat(parseInt(balance, 16) / 1e18).toFixed(4);
+        document.getElementById("balance").innerText = `${eth} ETH`;
+      } catch (err) {
+        document.getElementById("balance").innerText = "0.00 ETH";
+      }
+    }
+
+    async function fetchTransactionStats() {
+      if (!API_KEY || API_KEY === '1AP68CJ2H1KX8M1EJ2CPVQ8YZK87V84A9Q') {
+        showToast("Please set your Etherscan API key in the code.");
+        return;
+      }
+
+      try {
+        showToast("Fetching transaction history...");
+        const url = `https://api.etherscan.io/api?module=account&action=txlist&address=${connectedAddress}&startblock=0&endblock=99999999&sort=asc&apikey=${API_KEY}`;
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (data.status === '1' && data.result.length > 0) {
+          const txs = data.result;
+          const firstTx = txs[0];
+          const lastTx = txs[txs.length - 1];
+
+          const firstDate = new Date(parseInt(firstTx.timeStamp) * 1000).toLocaleDateString();
+          const lastDate = new Date(parseInt(lastTx.timeStamp) * 1000).toLocaleDateString();
+
+          let totalSent = 0;
+          let totalReceived = 0;
+
+          txs.forEach(tx => {
+            const valueWei = parseInt(tx.value);
+            const valueEth = valueWei / 1e18;
+
+            if (tx.from.toLowerCase() === connectedAddress.toLowerCase()) {
+              totalSent += valueEth;
+            }
+            if (tx.to && tx.to.toLowerCase() === connectedAddress.toLowerCase()) {
+              totalReceived += valueEth;
+            }
+          });
+
+          document.getElementById("firstTxDate").innerText = firstDate;
+          document.getElementById("lastTxDate").innerText = lastDate;
+          document.getElementById("totalTx").innerText = txs.length;
+          document.getElementById("totalSent").innerText = `${totalSent.toFixed(4)} ETH`;
+          document.getElementById("totalReceived").innerText = `${totalReceived.toFixed(4)} ETH`;
+
+          document.getElementById("stats").classList.remove("hidden");
+          showToast("Transaction stats loaded!");
+        } else {
+          document.getElementById("stats").classList.remove("hidden");
+          document.getElementById("firstTxDate").innerText = "No transactions";
+          document.getElementById("lastTxDate").innerText = "No transactions";
+          document.getElementById("totalTx").innerText = "0";
+          document.getElementById("totalSent").innerText = "0.00 ETH";
+          document.getElementById("totalReceived").innerText = "0.00 ETH";
+          showToast("No transaction history found.");
+        }
+      } catch (err) {
+        showToast("Failed to fetch transaction history. Check API key.");
+        console.error(err);
       }
     }
 
