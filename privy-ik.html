@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grok's Multi-Wallet Connector - Privy-Inspired Self-Creation</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f0f0f0; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        #status { margin: 20px 0; padding: 10px; background: #e9ecef; border-radius: 5px; }
+        #balance { font-size: 18px; font-weight: bold; color: #28a745; }
+        #walletList { display: flex; flex-wrap: wrap; gap: 10px; }
+        .wallet-btn { background: #6c757d; width: 150px; text-align: center; }
+        .wallet-btn.active { background: #28a745; }
+        #qrModal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border: 1px solid #ccc; z-index: 1000; }
+        #qrOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; }
+        #signBtn { background: #ffc107; color: #000; }
+    </style>
+</head>
+<body>
+    <h1>Grok's Multi-Wallet Connector (Privy-Style)</h1>
+    <p>Self-made connector detecting available wallets (MetaMask, Coinbase, WalletConnect). Connect any detected one, view balance, and sign a sample transaction (simple ETH transfer to a test address). Original creation inspired by Privy—lightweight, no external SDKs beyond CDNs.</p>
+    
+    <div id="walletList"></div>
+    <button id="connectBtn" disabled>Connect Selected</button>
+    <button id="disconnectBtn" disabled>Disconnect</button>
+    <button id="signBtn" disabled>Sign & Send Test Tx (0.001 ETH)</button>
+    
+    <div id="status">Status: Detecting wallets...</div>
+    <div id="balance"></div>
+    
+    <!-- QR Modal for WalletConnect -->
+    <div id="qrOverlay" onclick="closeQR()"></div>
+    <div id="qrModal">
+        <h3>Scan with WalletConnect</h3>
+        <div id="qrCode"></div>
+        <button onclick="closeQR()">Cancel</button>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "ethers": "https://cdn.ethers.io/lib/ethers-6.13.2.umd.min.js",
+                "@walletconnect/ethereum-provider": "https://unpkg.com/@walletconnect/ethereum-provider@2.14.0/dist/umd/index.min.js"
+            }
+        }
+    </script>
+    
+    <script type="module">
+        import { ethers } from 'ethers';
+        
+        // GrokMultiWalletConnector - Original self-made class, Privy-inspired
+        // Detects injected (MetaMask/Coinbase) + WalletConnect; handles connect, sign tx
+        class GrokMultiWalletConnector {
+            constructor() {
+                this.provider = null;
+                this.signer = null;
+                this.connectedAddress = null;
+                this.balance = null;
+                this.isConnected = false;
+                this.selectedWallet = null;
+                this.wallets = {
+                    metamask: { name: 'MetaMask', icon: '🦊', detected: false },
+                    coinbase: { name: 'Coinbase Wallet', icon: '⚡', detected: false },
+                    walletconnect: { name: 'WalletConnect', icon: '🔗', detected: true } // Always available
+                };
+                this.wcProvider = null;
+                
+                this.setupDetection();
+                this.setupWalletConnect();
+            }
+            
+            setupDetection() {
+                // Detect injected providers
+                if (window.ethereum?.isMetaMask) {
+                    this.wallets.metamask.detected = true;
+                }
+                if (window.ethereum?.isCoinbaseWallet) {
+                    this.wallets.coinbase.detected = true;
+                }
+                this.renderWalletList();
+                document.getElementById('status').textContent = 'Status: Wallets detected. Select one.';
+            }
+            
+            setupWalletConnect() {
+                // Init WalletConnect v2 provider (CDN-loaded)
+                this.wcProvider = window.EthereumProvider.init({
+                    projectId: 'YOUR_WC_PROJECT_ID', // Get free from walletconnect.com (demo: use 'abc123' for test)
+                    metadata: {
+                        name: 'Grok Connector',
+                        description: 'Self-made wallet app',
+                        url: window.location.origin,
+                        icons: ['https://example.com/icon.png']
+                    }
+                });
+                
+                this.wcProvider.on('display_uri', (uri) => {
+                    // Show QR with uri (use simple text for demo; real: qrcode lib)
+                    document.getElementById('qrCode').innerHTML = `<p>URI: ${uri}</p><p>Scan with mobile wallet (e.g., Rainbow).</p>`;
+                    document.getElementById('qrModal').style.display = 'block';
+                    document.getElementById('qrOverlay').style.display = 'block';
+                });
+                
+                this.wcProvider.on('connect', (info) => {
+                    this.provider = new ethers.BrowserProvider(this.wcProvider);
+                    this.handleConnect();
+                });
+                
+                this.wcProvider.on('disconnect', () => {
+                    this.disconnect();
+                });
+            }
+            
+            renderWalletList() {
+                const list = document.getElementById('walletList');
+                list.innerHTML = '';
+                Object.entries(this.wallets).forEach(([key, wallet]) => {
+                    if (wallet.detected) {
+                        const btn = document.createElement('button');
+                        btn.className = 'wallet-btn';
+                        btn.innerHTML = `${wallet.icon} ${wallet.name}`;
+                        btn.onclick = () => this.selectWallet(key);
+                        list.appendChild(btn);
+                    }
+                });
+            }
+            
+            selectWallet(key) {
+                // Deselect others
+                document.querySelectorAll('.wallet-btn').forEach(b => b.classList.remove('active'));
+                event.target.classList.add('active');
+                this.selectedWallet = key;
+                document.getElementById('connectBtn').disabled = false;
+                document.getElementById('status').textContent = `Status: Selected ${this.wallets[key].name}. Click Connect.`;
+            }
+            
+            async connect() {
+                if (!this.selectedWallet) throw new Error('No wallet selected');
+                
+                try {
+                    if (this.selectedWallet === 'walletconnect') {
+                        await this.wcProvider.connect();
+                        return; // Handled in event
+                    } else {
+                        // Injected (MetaMask/Coinbase)
+                        this.provider = new ethers.BrowserProvider(window.ethereum);
+                        const accounts = await this.provider.send('eth_requestAccounts', []);
+                        this.connectedAddress = ethers.getAddress(accounts[0]);
+                        this.signer = await this.provider.getSigner();
+                    }
+                    
+                    this.isConnected = true;
+                    await this.updateBalance();
+                    this.handleConnect();
+                } catch (error) {
+                    console.error('Connection failed:', error);
+                    throw error;
+                }
+            }
+            
+            async disconnect() {
+                if (this.selectedWallet === 'walletconnect') {
+                    await this.wcProvider.disconnect();
+                }
+                this.connectedAddress = null;
+                this.signer = null;
+                this.balance = null;
+                this.isConnected = false;
+                this.selectedWallet = null;
+                document.querySelectorAll('.wallet-btn').forEach(b => b.classList.remove('active'));
+                document.getElementById('connectBtn').disabled = true;
+                this.handleDisconnect();
+            }
+            
+            async updateBalance() {
+                if (!this.provider || !this.connectedAddress) return;
+                const balanceWei = await this.provider.getBalance(this.connectedAddress);
+                this.balance = ethers.formatEther(balanceWei);
+            }
+            
+            // Sign & Send Test Transaction (simple 0.001 ETH transfer to a safe address, e.g., vitalik's)
+            async signAndSendTestTx() {
+                if (!this.signer) throw new Error('Not connected');
+                
+                const txReq = {
+                    to: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045', // Vitalik's addr (safe test)
+                    value: ethers.parseEther('0.001'), // 0.001 ETH
+                    gasLimit: 21000
+                };
+                
+                try {
+                    const txResponse = await this.signer.sendTransaction(txReq);
+                    document.getElementById('status').textContent = `Status: Tx signed & sent! Hash: ${txResponse.hash}`;
+                    await txResponse.wait(); // Wait for confirm
+                    document.getElementById('status').textContent += ' Confirmed.';
+                } catch (error) {
+                    console.error('Tx failed:', error);
+                    document.getElementById('status').textContent = `Status: Tx error: ${error.message}`;
+                }
+            }
+            
+            handleConnect() {
+                console.log('Connected:', this.connectedAddress);
+                document.getElementById('status').textContent = `Status: Connected via ${this.selectedWallet}! Address: ${this.connectedAddress}`;
+                document.getElementById('disconnectBtn').disabled = false;
+                document.getElementById('signBtn').disabled = false;
+                this.renderBalance();
+                
+                // Listen for changes
+                this.provider.on('block', () => this.updateBalance().then(() => this.renderBalance()));
+            }
+            
+            handleDisconnect() {
+                console.log('Disconnected');
+                document.getElementById('status').textContent = 'Status: Disconnected.';
+                document.getElementById('disconnectBtn').disabled = true;
+                document.getElementById('signBtn').disabled = true;
+                document.getElementById('balance').innerHTML = '';
+            }
+            
+            renderBalance() {
+                const el = document.getElementById('balance');
+                el.innerHTML = this.balance ? `Balance: ${this.balance} ETH` : '';
+            }
+        }
+        
+        // Global functions for QR
+        function closeQR() {
+            document.getElementById('qrModal').style.display = 'none';
+            document.getElementById('qrOverlay').style.display = 'none';
+        }
+        
+        // Init
+        const connector = new GrokMultiWalletConnector();
+        
+        document.getElementById('connectBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('connectBtn');
+            btn.disabled = true;
+            btn.textContent = 'Connecting...';
+            try {
+                await connector.connect();
+            } catch (error) {
+                document.getElementById('status').textContent = 'Status: Connection failed - ' + error.message;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Connect Selected';
+            }
+        });
+        
+        document.getElementById('disconnectBtn').addEventListener('click', () => connector.disconnect());
+        
+        document.getElementById('signBtn').addEventListener('click', () => connector.signAndSendTestTx());
+        
+        // Auto-detect & connect if possible (e.g., MetaMask unlocked)
+        setTimeout(() => {
+            if (window.ethereum?.selectedAddress && connector.wallets.metamask.detected) {
+                connector.selectWallet('metamask');
+                connector.connect();
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
