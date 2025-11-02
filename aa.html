@@ -1,111 +1,408 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>YouTube Video Crop and Play</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body, html {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      background: black;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    #player {
-      position: absolute;
-      opacity: 0; /* Hide the original iframe */
-    }
-    #croppedCanvas {
-      width: 100%;
-      height: 100%;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="The most suitable wallet for Internet users, safe and efficient.">
+    <meta name="keywords" content="Web3, Wallet, Cryptocurrency, Safe, Efficient">
+    <meta name="author" content="@iYashKun">
+    <title>Web3 Wallet: Testnet</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.6.2/dist/ethers.umd.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(145deg, #000000, #1a1a1a);
+            user-select: none;
+        }
+        img, button {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .modal-enter {
+            animation: modalEnter 0.3s ease-out;
+        }
+        @keyframes modalEnter {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+    </style>
 </head>
-<body>
-  <div id="player"></div>
-  <canvas id="croppedCanvas"></canvas>
+<body class="bg-black flex items-center justify-center min-h-screen">
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-4 right-4 px-4 py-2 rounded-lg shadow-lg hidden z-50 transform translate-x-full transition-transform duration-300">
+        <span class="text-sm font-medium"></span>
+    </div>
 
-  <script>
-    // Extract YouTube video ID from URL
-    function extractVideoId(url) {
-      const regex = /(?:youtube\.com.*(?:\/|v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
-      const match = url.match(regex);
-      return match ? match[1] : null;
-    }
+    <div id="mainPage" class="text-left p-6 w-full max-w-md">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl text-white font-bold">Web3 Wallet</h1>
+            <button id="settingsBtn" class="text-white text-2xl"><i class="fas fa-cog"></i></button>
+        </div>
+        <img alt="Illustration of a shield with a check mark, a wallet, and coins" class="mx-auto mb-6 w-32 h-32 object-contain" src="https://framerusercontent.com/images/4yWuZhYgrbEf24mM1QSmRoMsbiI.png?scale-down-to=512"/>
+        <p class="text-gray-400 mb-6 text-sm leading-relaxed">The most suitable wallet for Internet users, safe and efficient</p>
+        <button id="createWallet" class="bg-white text-black py-3 px-6 rounded-full w-full font-semibold text-sm transition-colors duration-200 mb-3">Create Wallet</button>
+        <button id="bulkCreate" class="bg-indigo-600 text-white py-3 px-6 rounded-full w-full font-semibold text-sm transition-colors duration-200">Bulk Create</button>
+    </div>
 
-    // Load YouTube Iframe API
-    const tag = document.createElement('script');
-    tag.src = 'https://www.youtube.com/iframe_api';
-    document.head.appendChild(tag);
+    <div id="walletPage" class="hidden text-left p-6 w-full max-w-md fade-in">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl text-white font-bold">Your Wallet</h1>
+            <button id="backBtn" class="text-white text-2xl"><i class="fas fa-arrow-left"></i></button>
+        </div>
+        <div class="bg-gray-900 p-6 rounded-xl mb-6 border border-gray-800">
+            <div class="mb-5">
+                <p class="text-gray-400 text-xs font-medium uppercase tracking-wide mb-2">Address</p>
+                <div class="flex items-center justify-between bg-gray-800 p-3 rounded-lg">
+                    <p id="walletAddress" class="text-white text-sm break-all font-mono"></p>
+                    <button class="copy-btn text-gray-400 text-lg" data-copy="walletAddress"><i class="fas fa-copy"></i></button>
+                </div>
+            </div>
+            <div class="mb-5">
+                <p class="text-gray-400 text-xs font-medium uppercase tracking-wide mb-2">Private Key</p>
+                <div class="flex items-center justify-between bg-gray-800 p-3 rounded-lg">
+                    <p id="walletPK" class="text-white text-sm break-all font-mono"></p>
+                    <button class="copy-btn text-gray-400 text-lg" data-copy="walletPK"><i class="fas fa-copy"></i></button>
+                </div>
+            </div>
+            <div>
+                <p class="text-gray-400 text-xs font-medium uppercase tracking-wide mb-2">Secret Phrase</p>
+                <div class="flex items-center justify-between bg-gray-800 p-3 rounded-lg">
+                    <p id="walletMnemonic" class="text-white text-sm break-all font-mono"></p>
+                    <button class="copy-btn text-gray-400 text-lg" data-copy="walletMnemonic"><i class="fas fa-copy"></i></button>
+                </div>
+            </div>
+        </div>
+        <button id="returnBtn" class="bg-white text-black py-3 px-6 rounded-full w-full font-semibold text-sm transition-colors duration-200">Back to Home</button>
+    </div>
 
-    let player;
-    window.onYouTubeIframeAPIReady = () => {
-      const params = new URLSearchParams(window.location.search);
-      const videoParam = params.get('video');
-      const videoId = videoParam ? extractVideoId(videoParam) : 'dQw4w9WgXcQ'; // Default video ID
+    <!-- Bulk Modal Overlay -->
+    <div id="bulkModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-40 p-4">
+        <div id="bulkModalContent" class="bg-gray-900 rounded-xl shadow-2xl w-full max-w-sm modal-enter border border-gray-700">
+            <div class="flex justify-between items-center border-b border-gray-700 px-5 py-4">
+                <h2 class="text-sm font-semibold text-gray-300 uppercase tracking-wide">Bulk Create</h2>
+                <button id="closeBulkModal" class="text-gray-400 text-lg hover:text-gray-200 transition-colors duration-200">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="walletForm" class="px-5 py-5 space-y-5 text-xs text-gray-300 font-medium" onsubmit="return false;">
+                <div>
+                    <label for="chain" class="block mb-1 font-semibold text-gray-400 uppercase tracking-wide text-[10px]">Chain</label>
+                    <div class="flex border border-gray-600 rounded text-xs font-semibold text-gray-300 bg-gray-800">
+                        <button type="button" class="flex-1 py-2 bg-indigo-600 text-white cursor-default" disabled>EVM</button>
+                        <button type="button" class="flex-1 py-2 cursor-default text-gray-500" disabled>Solana</button>
+                    </div>
+                </div>
+                <div>
+                    <label for="count" class="block mb-1 font-semibold text-gray-400 uppercase tracking-wide text-[10px]">Count</label>
+                    <div class="flex items-center border border-gray-600 rounded text-gray-300 text-xs font-semibold bg-gray-800">
+                        <button type="button" id="decrement" class="flex-1 py-2 border-r border-gray-600 text-lg font-bold">−</button>
+                        <input
+                            id="count"
+                            type="number"
+                            min="1"
+                            max="2000"
+                            value="1"
+                            class="flex-1 text-center py-2 focus:outline-none border-r border-gray-600 bg-transparent text-white"
+                        />
+                        <button type="button" id="increment" class="flex-1 py-2 border-r border-gray-600 text-lg font-bold">+</button>
+                        <button type="button" id="maxBtn" class="flex-1 py-2 border-r border-gray-600 text-xs font-semibold text-gray-300">MAX</button>
+                        <button type="button" id="resetBtn" class="flex-1 py-2 text-xs font-semibold text-gray-300 border-l border-gray-600">RESET</button>
+                    </div>
+                </div>
+                <div class="relative">
+                    <label for="typeSelect" class="block mb-1 font-semibold text-gray-400 uppercase tracking-wide text-[10px]">Type</label>
+                    <button
+                        type="button"
+                        id="typeSelect"
+                        aria-haspopup="listbox"
+                        aria-expanded="false"
+                        class="w-full flex items-center justify-between border border-gray-600 rounded px-3 py-2 text-xs font-semibold text-gray-300 bg-gray-800"
+                    >
+                        <div class="flex items-center space-x-2">
+                            <span id="typeColor" class="w-3 h-3 rounded-sm bg-teal-500 block"></span>
+                            <span id="typeText" class="uppercase">Secret Phases</span>
+                        </div>
+                        <i class="fas fa-chevron-down text-gray-500"></i>
+                    </button>
+                    <ul
+                        id="typeOptions"
+                        class="hidden absolute z-20 mt-1 w-full max-h-32 overflow-auto border border-gray-600 rounded bg-gray-800 text-xs text-gray-300 font-semibold shadow-lg"
+                        role="listbox"
+                        tabindex="-1"
+                    >
+                        <li
+                            class="cursor-pointer px-3 py-2 transition-colors duration-200 flex items-center space-x-2"
+                            data-value="Secret Phases"
+                            data-color="bg-teal-500"
+                            role="option"
+                            tabindex="0"
+                        >
+                            <span class="w-3 h-3 rounded-sm bg-teal-500 block"></span>
+                            <span class="uppercase">Secret Phases</span>
+                        </li>
+                        <li>
+                            <hr class="border-gray-600 my-1" />
+                        </li>
+                        <li
+                            class="cursor-pointer px-3 py-2 transition-colors duration-200 flex items-center space-x-2"
+                            data-value="Private Key"
+                            data-color="bg-red-500"
+                            role="option"
+                            tabindex="0"
+                        >
+                            <span class="w-3 h-3 rounded-sm bg-red-500 block"></span>
+                            <span class="uppercase">Private Key</span>
+                        </li>
+                        <li>
+                            <hr class="border-gray-600 my-1" />
+                        </li>
+                        <li
+                            class="cursor-pointer px-3 py-2 transition-colors duration-200 flex items-center space-x-2"
+                            data-value="Seed Phases with Private Key"
+                            data-color="bg-green-500"
+                            role="option"
+                            tabindex="0"
+                        >
+                            <span class="w-3 h-3 rounded-sm bg-green-500 block"></span>
+                            <span class="uppercase text-[9px]">Seed Phases with Private Key</span>
+                        </li>
+                    </ul>
+                </div>
+                <div>
+                    <button
+                        type="submit"
+                        class="bg-indigo-600 text-white text-xs font-semibold px-4 py-2 rounded-lg flex items-center justify-center space-x-2 w-full transition-colors duration-200"
+                    >
+                        <i class="fas fa-plus text-sm"></i>
+                        <span class="uppercase">Create</span>
+                    </button>
+                </div>
+            </form>
+            <p class="text-center text-gray-500 text-[10px] font-medium py-3 select-none border-t border-gray-700">
+                Private keys are encrypted and stored securely
+            </p>
+        </div>
+    </div>
 
-      if (!videoId) {
-        console.error('Invalid video URL');
-        return;
-      }
+    <script>
+        document.addEventListener('contextmenu', event => event.preventDefault());
 
-      // Initialize YouTube player
-      player = new YT.Player('player', {
-        height: '100%',
-        width: '100%',
-        videoId: videoId,
-        playerVars: {
-          autoplay: 1,
-          controls: 0, // Hide controls
-          modestbranding: 1, // Minimize branding
-          rel: 0,
-          vq: 'hd1080'
-        },
-        events: {
-          onReady: (event) => {
-            event.target.playVideo();
-            startCanvasCropping();
-          }
+        const provider = new ethers.JsonRpcProvider("https://base-mainnet.infura.io/v3/013c2654639045538cd2e19cc1f72380");
+        let wallet;
+
+        const mainPage = document.getElementById("mainPage");
+        const walletPage = document.getElementById("walletPage");
+        const bulkModal = document.getElementById("bulkModal");
+        const toast = document.getElementById("toast");
+
+        // Toast function
+        function showToast(message, type = 'success', duration = 3000) {
+            toast.classList.remove('translate-x-full');
+            toast.classList.add('bg-green-600', 'text-white');
+            if (type === 'error') {
+                toast.classList.remove('bg-green-600');
+                toast.classList.add('bg-red-600');
+            }
+            const span = toast.querySelector('span');
+            span.textContent = message;
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+            }, duration);
         }
-      });
-    };
 
-    function startCanvasCropping() {
-      const iframe = document.querySelector('iframe');
-      const canvas = document.getElementById('croppedCanvas');
-      const ctx = canvas.getContext('2d');
+        // Single wallet creation
+        document.getElementById("createWallet").onclick = async () => {
+            wallet = ethers.Wallet.createRandom();
+            wallet = wallet.connect(provider);
+            document.getElementById("walletAddress").textContent = wallet.address;
+            document.getElementById("walletPK").textContent = wallet.privateKey;
+            document.getElementById("walletMnemonic").textContent = wallet.mnemonic.phrase;
+            mainPage.classList.add("hidden");
+            walletPage.classList.remove("hidden");
+            showToast('Wallet created successfully!');
+        };
 
-      // Set canvas size (adjust for desired output)
-      canvas.width = 1280;
-      canvas.height = 720;
+        // Settings
+        document.getElementById("settingsBtn").onclick = () => {
+            showToast("Create a wallet to view your address, private key, and secret phrase.", 'info', 4000);
+        };
 
-      // Crop parameters (adjust to focus on video content, avoiding controls)
-      const cropX = 0;
-      const cropY = 50; // Skip top bar (adjust as needed)
-      const cropWidth = 1280;
-      const cropHeight = 620; // Avoid bottom controls (adjust as needed)
+        // Navigation
+        document.getElementById("backBtn").onclick = () => {
+            mainPage.classList.remove("hidden");
+            walletPage.classList.add("hidden");
+        };
 
-      function drawFrame() {
-        try {
-          // Draw iframe content to canvas with cropping
-          ctx.drawImage(
-            iframe,
-            cropX, cropY, cropWidth, cropHeight, // Source rectangle
-            0, 0, canvas.width, canvas.height // Destination rectangle
-          );
-        } catch (e) {
-          console.error('Error drawing to canvas:', e);
+        document.getElementById("returnBtn").onclick = () => {
+            mainPage.classList.remove("hidden");
+            walletPage.classList.add("hidden");
+        };
+
+        // Copy functionality
+        document.querySelectorAll(".copy-btn").forEach(btn => {
+            btn.onclick = () => {
+                const targetId = btn.getAttribute("data-copy");
+                const text = document.getElementById(targetId).textContent;
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast('Copied to clipboard!');
+                }).catch(() => {
+                    showToast('Failed to copy to clipboard.', 'error');
+                });
+            };
+        });
+
+        // Bulk modal
+        document.getElementById("bulkCreate").onclick = () => {
+            bulkModal.classList.remove("hidden");
+        };
+
+        document.getElementById("closeBulkModal").onclick = () => {
+            bulkModal.classList.add("hidden");
+        };
+
+        bulkModal.onclick = (e) => {
+            if (e.target === bulkModal) {
+                bulkModal.classList.add("hidden");
+            }
+        };
+
+        // Bulk counter logic
+        const countInput = document.getElementById('count');
+        const incrementBtn = document.getElementById('increment');
+        const decrementBtn = document.getElementById('decrement');
+        const maxBtn = document.getElementById('maxBtn');
+        const resetBtn = document.getElementById('resetBtn');
+
+        const MIN = 1;
+        const MAX = 2000;
+
+        function updateCount(newCount) {
+            if (newCount < MIN) newCount = MIN;
+            if (newCount > MAX) newCount = MAX;
+            countInput.value = newCount;
         }
-        requestAnimationFrame(drawFrame); // Continuously draw frames
-      }
 
-      // Start drawing
-      drawFrame();
-    }
-  </script>
+        incrementBtn.addEventListener('click', () => {
+            let current = parseInt(countInput.value, 10);
+            if (current < MAX) {
+                updateCount(current + 1);
+            }
+        });
+
+        decrementBtn.addEventListener('click', () => {
+            let current = parseInt(countInput.value, 10);
+            if (current > MIN) {
+                updateCount(current - 1);
+            }
+        });
+
+        maxBtn.addEventListener('click', () => {
+            updateCount(MAX);
+        });
+
+        resetBtn.addEventListener('click', () => {
+            updateCount(MIN);
+        });
+
+        countInput.addEventListener('input', () => {
+            let val = parseInt(countInput.value, 10);
+            if (isNaN(val) || val < MIN) {
+                countInput.value = MIN;
+            } else if (val > MAX) {
+                countInput.value = MAX;
+            }
+        });
+
+        // Bulk type dropdown
+        const typeSelect = document.getElementById('typeSelect');
+        const typeOptions = document.getElementById('typeOptions');
+        const typeText = document.getElementById('typeText');
+        const typeColor = document.getElementById('typeColor');
+        let selectedType = 'Secret Phases';
+
+        typeSelect.addEventListener('click', () => {
+            typeOptions.classList.toggle('hidden');
+            const expanded = typeSelect.getAttribute('aria-expanded') === 'true';
+            typeSelect.setAttribute('aria-expanded', !expanded);
+        });
+
+        typeOptions.querySelectorAll('li[data-value]').forEach(option => {
+            option.addEventListener('click', () => {
+                const value = option.getAttribute('data-value');
+                const colorClass = option.getAttribute('data-color');
+                selectedType = value;
+
+                typeText.textContent = value.toUpperCase();
+
+                typeColor.classList.remove('bg-teal-500', 'bg-red-500', 'bg-green-500');
+                typeColor.classList.add(colorClass);
+
+                typeOptions.classList.add('hidden');
+                typeSelect.setAttribute('aria-expanded', 'false');
+            });
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!typeSelect.contains(e.target) && !typeOptions.contains(e.target)) {
+                typeOptions.classList.add('hidden');
+                typeSelect.setAttribute('aria-expanded', 'false');
+            }
+        });
+
+        // Bulk form submit
+        document.getElementById("walletForm").onsubmit = (e) => {
+            e.preventDefault();
+            const count = parseInt(countInput.value, 10);
+            let wallets = [];
+
+            for (let i = 0; i < count; i++) {
+                const w = ethers.Wallet.createRandom();
+                let entry = {
+                    index: i + 1,
+                    address: w.address,
+                    privateKey: w.privateKey,
+                    mnemonic: w.mnemonic.phrase
+                };
+
+                if (selectedType === 'Secret Phases') {
+                    entry = { index: i + 1, mnemonic: w.mnemonic.phrase };
+                } else if (selectedType === 'Private Key') {
+                    entry = { index: i + 1, address: w.address, privateKey: w.privateKey };
+                } else {
+                    // Seed Phases with Private Key - full
+                    entry = entry;
+                }
+
+                wallets.push(entry);
+            }
+
+            const dataStr = JSON.stringify(wallets, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `evm-bulk-wallets-${selectedType.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            bulkModal.classList.add("hidden");
+            showToast(`${count} EVM wallets generated and downloaded!`);
+        };
+    </script>
 </body>
 </html>
