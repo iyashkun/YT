@@ -31,12 +31,32 @@
             from { opacity: 0; transform: translateY(-20px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        .slide-in {
+            animation: slideIn 0.4s ease-out;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
         .modal-enter {
             animation: modalEnter 0.3s ease-out;
         }
         @keyframes modalEnter {
             from { opacity: 0; transform: scale(0.95); }
             to { opacity: 1; transform: scale(1); }
+        }
+        .wallet-item {
+            animation: fadeInItem 0.6s ease-in forwards;
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        .wallet-item:nth-child(1) { animation-delay: 0.1s; }
+        .wallet-item:nth-child(2) { animation-delay: 0.2s; }
+        .wallet-item:nth-child(3) { animation-delay: 0.3s; }
+        .wallet-item:nth-child(4) { animation-delay: 0.4s; }
+        .wallet-item:nth-child(5) { animation-delay: 0.5s; }
+        @keyframes fadeInItem {
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
@@ -51,7 +71,7 @@
             <h1 class="text-3xl text-white font-bold">Web3 Wallet</h1>
             <button id="settingsBtn" class="text-white text-2xl"><i class="fas fa-cog"></i></button>
         </div>
-        <img alt="Illustration of a shield with a check mark, a wallet, and coins" class="mx-auto mb-6 w-32 h-32 object-contain" src="https://framerusercontent.com/images/4yWuZhYgrbEf24mM1QSmRoMsbiI.png?scale-down-to=512"/>
+        <img alt="Illustration of a shield with a check mark, a wallet, and coins" class="mx-auto mb-6 w-48 h-48 object-contain" src="https://framerusercontent.com/images/4yWuZhYgrbEf24mM1QSmRoMsbiI.png?scale-down-to=512"/>
         <p class="text-gray-400 mb-6 text-sm leading-relaxed">The most suitable wallet for Internet users, safe and efficient</p>
         <button id="createWallet" class="bg-white text-black py-3 px-6 rounded-full w-full font-semibold text-sm transition-colors duration-200 mb-3">Create Wallet</button>
         <button id="bulkCreate" class="bg-indigo-600 text-white py-3 px-6 rounded-full w-full font-semibold text-sm transition-colors duration-200">Bulk Create</button>
@@ -86,6 +106,18 @@
             </div>
         </div>
         <button id="returnBtn" class="bg-white text-black py-3 px-6 rounded-full w-full font-semibold text-sm transition-colors duration-200">Back to Home</button>
+    </div>
+
+    <!-- Bulk Results Page -->
+    <div id="bulkPage" class="hidden text-left p-6 w-full max-w-md fade-in">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl text-white font-bold">Bulk Wallets</h1>
+            <button id="bulkBackBtn" class="text-white text-2xl"><i class="fas fa-arrow-left"></i></button>
+        </div>
+        <div id="bulkContent" class="bg-gray-900 p-4 rounded-xl mb-6 border border-gray-800 max-h-96 overflow-y-auto space-y-4">
+            <!-- Dynamically populated -->
+        </div>
+        <button id="bulkReturnBtn" class="bg-white text-black py-3 px-6 rounded-full w-full font-semibold text-sm transition-colors duration-200">Back to Home</button>
     </div>
 
     <!-- Bulk Modal Overlay -->
@@ -205,16 +237,20 @@
 
         const mainPage = document.getElementById("mainPage");
         const walletPage = document.getElementById("walletPage");
+        const bulkPage = document.getElementById("bulkPage");
         const bulkModal = document.getElementById("bulkModal");
         const toast = document.getElementById("toast");
 
         // Toast function
         function showToast(message, type = 'success', duration = 3000) {
             toast.classList.remove('translate-x-full');
-            toast.classList.add('bg-green-600', 'text-white');
-            if (type === 'error') {
-                toast.classList.remove('bg-green-600');
-                toast.classList.add('bg-red-600');
+            toast.classList.remove('bg-green-600', 'bg-red-600');
+            if (type === 'success') {
+                toast.classList.add('bg-green-600', 'text-white');
+            } else if (type === 'error') {
+                toast.classList.add('bg-red-600', 'text-white');
+            } else {
+                toast.classList.add('bg-indigo-600', 'text-white');
             }
             const span = toast.querySelector('span');
             span.textContent = message;
@@ -249,6 +285,17 @@
         document.getElementById("returnBtn").onclick = () => {
             mainPage.classList.remove("hidden");
             walletPage.classList.add("hidden");
+        };
+
+        // Bulk navigation
+        document.getElementById("bulkBackBtn").onclick = () => {
+            mainPage.classList.remove("hidden");
+            bulkPage.classList.add("hidden");
+        };
+
+        document.getElementById("bulkReturnBtn").onclick = () => {
+            mainPage.classList.remove("hidden");
+            bulkPage.classList.add("hidden");
         };
 
         // Copy functionality
@@ -362,11 +409,14 @@
             }
         });
 
-        // Bulk form submit
+        // Bulk form submit - Display results
         document.getElementById("walletForm").onsubmit = (e) => {
             e.preventDefault();
             const count = parseInt(countInput.value, 10);
+            const bulkContent = document.getElementById("bulkContent");
             let wallets = [];
+
+            bulkContent.innerHTML = ''; // Clear previous
 
             for (let i = 0; i < count; i++) {
                 const w = ethers.Wallet.createRandom();
@@ -377,31 +427,107 @@
                     mnemonic: w.mnemonic.phrase
                 };
 
+                let html = '';
+
                 if (selectedType === 'Secret Phases') {
-                    entry = { index: i + 1, mnemonic: w.mnemonic.phrase };
+                    html = `
+                        <div class="wallet-item bg-gray-800 p-3 rounded-lg border border-gray-700">
+                            <p class="text-gray-400 text-xs font-medium uppercase tracking-wide mb-1">#${entry.index}</p>
+                            <div class="flex items-center justify-between">
+                                <p class="text-white text-sm break-all font-mono">${entry.mnemonic}</p>
+                                <button class="copy-btn text-gray-400 text-lg" data-copy="mnemonic-${i}"><i class="fas fa-copy"></i></button>
+                            </div>
+                        </div>
+                    `;
+                    bulkContent.innerHTML += html;
+                    document.getElementById(`mnemonic-${i}`) ? null : bulkContent.querySelector(`[data-copy="mnemonic-${i}"]`).setAttribute('data-copy', `mnemonic-${i}`);
+                    // Actually set the id on the p
+                    const p = bulkContent.lastElementChild.querySelector('p:last-child');
+                    p.id = `mnemonic-${i}`;
                 } else if (selectedType === 'Private Key') {
-                    entry = { index: i + 1, address: w.address, privateKey: w.privateKey };
+                    html = `
+                        <div class="wallet-item bg-gray-800 p-3 rounded-lg border border-gray-700">
+                            <p class="text-gray-400 text-xs font-medium uppercase tracking-wide mb-1">#${entry.index}</p>
+                            <div class="mb-2">
+                                <p class="text-gray-400 text-xs mb-1">Address</p>
+                                <div class="flex items-center justify-between">
+                                    <p class="text-white text-xs break-all font-mono">${entry.address}</p>
+                                    <button class="copy-btn text-gray-400 text-sm" data-copy="address-${i}"><i class="fas fa-copy"></i></button>
+                                </div>
+                            </div>
+                            <div>
+                                <p class="text-gray-400 text-xs mb-1">Private Key</p>
+                                <div class="flex items-center justify-between">
+                                    <p class="text-white text-xs break-all font-mono">${entry.privateKey}</p>
+                                    <button class="copy-btn text-gray-400 text-sm" data-copy="pk-${i}"><i class="fas fa-copy"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    bulkContent.innerHTML += html;
+                    // Set ids
+                    const addressP = bulkContent.lastElementChild.querySelector('p:nth-child(3)');
+                    addressP.id = `address-${i}`;
+                    const pkP = bulkContent.lastElementChild.querySelector('p:last-child');
+                    pkP.id = `pk-${i}`;
                 } else {
                     // Seed Phases with Private Key - full
-                    entry = entry;
+                    html = `
+                        <div class="wallet-item bg-gray-800 p-3 rounded-lg border border-gray-700">
+                            <p class="text-gray-400 text-xs font-medium uppercase tracking-wide mb-1">#${entry.index}</p>
+                            <div class="mb-2">
+                                <p class="text-gray-400 text-xs mb-1">Address</p>
+                                <div class="flex items-center justify-between">
+                                    <p class="text-white text-xs break-all font-mono">${entry.address}</p>
+                                    <button class="copy-btn text-gray-400 text-sm" data-copy="address-${i}"><i class="fas fa-copy"></i></button>
+                                </div>
+                            </div>
+                            <div class="mb-2">
+                                <p class="text-gray-400 text-xs mb-1">Private Key</p>
+                                <div class="flex items-center justify-between">
+                                    <p class="text-white text-xs break-all font-mono">${entry.privateKey}</p>
+                                    <button class="copy-btn text-gray-400 text-sm" data-copy="pk-${i}"><i class="fas fa-copy"></i></button>
+                                </div>
+                            </div>
+                            <div>
+                                <p class="text-gray-400 text-xs mb-1">Secret Phrase</p>
+                                <div class="flex items-center justify-between">
+                                    <p class="text-white text-xs break-all font-mono">${entry.mnemonic}</p>
+                                    <button class="copy-btn text-gray-400 text-sm" data-copy="mnemonic-${i}"><i class="fas fa-copy"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    bulkContent.innerHTML += html;
+                    // Set ids
+                    const fullAddressP = bulkContent.lastElementChild.querySelector('p:nth-child(3)');
+                    fullAddressP.id = `address-${i}`;
+                    const fullPkP = bulkContent.lastElementChild.querySelector('p:nth-child(6)');
+                    fullPkP.id = `pk-${i}`;
+                    const fullMnemonicP = bulkContent.lastElementChild.querySelector('p:last-child');
+                    fullMnemonicP.id = `mnemonic-${i}`;
                 }
 
                 wallets.push(entry);
             }
 
-            const dataStr = JSON.stringify(wallets, null, 2);
-            const blob = new Blob([dataStr], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `evm-bulk-wallets-${selectedType.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            // Re-attach copy listeners for new buttons
+            document.querySelectorAll(".copy-btn").forEach(btn => {
+                btn.onclick = () => {
+                    const targetId = btn.getAttribute("data-copy");
+                    const text = document.getElementById(targetId).textContent;
+                    navigator.clipboard.writeText(text).then(() => {
+                        showToast('Copied to clipboard!');
+                    }).catch(() => {
+                        showToast('Failed to copy to clipboard.', 'error');
+                    });
+                };
+            });
 
             bulkModal.classList.add("hidden");
-            showToast(`${count} EVM wallets generated and downloaded!`);
+            mainPage.classList.add("hidden");
+            bulkPage.classList.remove("hidden");
+            showToast(`${count} EVM wallets generated!`);
         };
     </script>
 </body>
